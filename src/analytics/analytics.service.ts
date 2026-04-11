@@ -17,6 +17,17 @@ export class AnalyticsService {
     @InjectRepository(Commission) private readonly commissionRepo: Repository<Commission>,
   ) { }
 
+  private getDateFrom(period?: string): Date | null {
+    if (!period) return null;
+    const now = new Date();
+    switch (period) {
+      case '7d': return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      case '30d': return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      case '1y': return new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+      default: return null;
+    }
+  }
+
   async getDashboardStats(tenantId: string) {
     const [totalOrders, totalAgents, totalCustomers, totalProducts] = await Promise.all([
       this.orderRepo.count({ where: { tenantId } }),
@@ -91,31 +102,52 @@ export class AnalyticsService {
       .getRawMany();
   }
 
-  async getRevenueByMonth(tenantId: string) {
-    return this.orderRepo
+  async getRevenueByMonth(tenantId: string, period?: string) {
+    const qb = this.orderRepo
       .createQueryBuilder('o')
       .select("TO_CHAR(o.created_at, 'YYYY-MM')", 'month')
       .addSelect('COUNT(*)', 'orders')
       .addSelect('COALESCE(SUM(o.total), 0)', 'revenue')
       .where('o.tenant_id = :tenantId', { tenantId })
-      .andWhere("o.status != 'cancelled'")
-      .groupBy("TO_CHAR(o.created_at, 'YYYY-MM')")
+      .andWhere("o.status != 'cancelled'");
+    const dateFrom = this.getDateFrom(period);
+    if (dateFrom) qb.andWhere('o.created_at >= :dateFrom', { dateFrom });
+    return qb.groupBy("TO_CHAR(o.created_at, 'YYYY-MM')")
       .orderBy('month', 'ASC')
       .getRawMany();
   }
 
-  async getOrdersByCity(tenantId: string) {
-    return this.orderRepo
+  async getOrdersByCity(tenantId: string, period?: string) {
+    const qb = this.orderRepo
       .createQueryBuilder('o')
       .select("o.shipping_address->>'city'", 'city')
       .addSelect("o.shipping_address->>'country'", 'country')
       .addSelect('COUNT(*)', 'totalOrders')
       .addSelect('COALESCE(SUM(o.total), 0)', 'totalRevenue')
       .where('o.tenant_id = :tenantId', { tenantId })
-      .andWhere("o.shipping_address->>'city' IS NOT NULL")
-      .groupBy("o.shipping_address->>'city'")
+      .andWhere("o.shipping_address->>'city' IS NOT NULL");
+    const dateFrom = this.getDateFrom(period);
+    if (dateFrom) qb.andWhere('o.created_at >= :dateFrom', { dateFrom });
+    return qb.groupBy("o.shipping_address->>'city'")
       .addGroupBy("o.shipping_address->>'country'")
       .orderBy('"totalOrders"', 'DESC')
+      .getRawMany();
+  }
+
+  async getOrdersByCategory(tenantId: string, period?: string) {
+    const qb = this.orderRepo
+      .createQueryBuilder('o')
+      .select('c.name', 'category')
+      .addSelect('COUNT(DISTINCT o.id)', 'totalOrders')
+      .addSelect('COALESCE(SUM(oi.subtotal), 0)', 'totalRevenue')
+      .innerJoin('order_items', 'oi', 'oi.order_id = o.id')
+      .innerJoin('products', 'p', 'p.id = oi.product_id')
+      .leftJoin('categories', 'c', 'c.id = p.category_id')
+      .where('o.tenant_id = :tenantId', { tenantId });
+    const dateFrom = this.getDateFrom(period);
+    if (dateFrom) qb.andWhere('o.created_at >= :dateFrom', { dateFrom });
+    return qb.groupBy('c.name')
+      .orderBy('"totalRevenue"', 'DESC')
       .getRawMany();
   }
 }

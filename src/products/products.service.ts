@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, ILike } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
 import { Category } from './entities/category.entity';
 import { Brand } from './entities/brand.entity';
+import { StorageService } from '../storage/storage.service';
 
 @Injectable()
 export class ProductsService {
@@ -14,6 +15,7 @@ export class ProductsService {
     private readonly categoryRepo: Repository<Category>,
     @InjectRepository(Brand)
     private readonly brandRepo: Repository<Brand>,
+    private readonly storageService: StorageService,
   ) { }
 
   // === Products ===
@@ -150,9 +152,24 @@ export class ProductsService {
   async addProductImage(id: string, base64Image: string) {
     const product = await this.productRepo.findOne({ where: { id } });
     if (!product) throw new NotFoundException('Product not found');
-    const images = product.images || [];
-    images.push(base64Image);
-    await this.productRepo.update(id, { images, updatedAt: new Date() });
+
+    let imageUrl: string;
+
+    if (base64Image.startsWith('http://') || base64Image.startsWith('https://')) {
+      imageUrl = base64Image;
+    } else {
+      const matches = base64Image.match(/^data:([a-zA-Z0-9+/]+\/[a-zA-Z0-9+/]+);base64,(.+)$/);
+      if (!matches) throw new Error('Invalid base64 image format');
+      const mimeType = matches[1];
+      const ext = mimeType.split('/')[1].replace('jpeg', 'jpg');
+      const buffer = Buffer.from(matches[2], 'base64');
+      const { url } = await this.storageService.upload(buffer, `product.${ext}`, mimeType, 'products');
+      imageUrl = url;
+    }
+
+    const existingImages = (product.images || []).filter(img => img.startsWith('http'));
+    existingImages.push(imageUrl);
+    await this.productRepo.update(id, { images: existingImages, updatedAt: new Date() });
     return this.findProduct(id);
   }
 

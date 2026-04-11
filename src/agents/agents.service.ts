@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import * as bcrypt from 'bcryptjs';
 import { Agent, AgentStatus } from './entities/agent.entity';
 import { AgentApplication, ApplicationStatus } from './entities/agent-application.entity';
 import { User, UserRole } from '../users/entities/user.entity';
@@ -16,19 +17,19 @@ export class AgentsService {
     private readonly userRepo: Repository<User>,
   ) { }
 
-  async findAll(tenantId: string, query?: { city?: string; category?: string; status?: string }) {
+  async findAll(tenantId: string, query?: { city?: string; category?: string; status?: string; search?: string }) {
     const qb = this.agentRepo.createQueryBuilder('agent')
       .leftJoinAndSelect('agent.user', 'user')
       .where('agent.tenantId = :tenantId', { tenantId });
 
-    if (query?.city) {
-      qb.andWhere(':city = ANY(agent.coverageAreas)', { city: query.city });
-    }
-    if (query?.category) {
-      qb.andWhere(':category = ANY(agent.specializationCategories)', { category: query.category });
-    }
-    if (query?.status) {
-      qb.andWhere('agent.status = :status', { status: query.status });
+    if (query?.city) qb.andWhere(':city = ANY(agent.coverageAreas)', { city: query.city });
+    if (query?.category) qb.andWhere(':category = ANY(agent.specializationCategories)', { category: query.category });
+    if (query?.status) qb.andWhere('agent.status = :status', { status: query.status });
+    if (query?.search) {
+      qb.andWhere(
+        "(LOWER(user.firstName || ' ' || user.lastName) LIKE :s OR LOWER(user.email) LIKE :s OR LOWER(agent.referralCode) LIKE :s)",
+        { s: `%${query.search.toLowerCase()}%` },
+      );
     }
 
     qb.orderBy('agent.totalRevenue', 'DESC');
@@ -120,8 +121,13 @@ export class AgentsService {
   }
 
   // Applications
-  async createApplication(tenantId: string, dto: Partial<AgentApplication>) {
-    const app = this.applicationRepo.create({ ...dto, tenantId });
+  async createApplication(tenantId: string, dto: Partial<AgentApplication> & { password?: string }) {
+    const data: any = { ...dto, tenantId };
+    if (dto.password) {
+      data.passwordHash = await bcrypt.hash(dto.password, 10);
+      delete data.password;
+    }
+    const app = this.applicationRepo.create(data);
     return this.applicationRepo.save(app);
   }
 
@@ -161,6 +167,7 @@ export class AgentsService {
         user = this.userRepo.create({
           tenantId: app.tenantId,
           email: app.email,
+          passwordHash: app.passwordHash || undefined,
           firstName: names[0],
           lastName: names.slice(1).join(' ') || '',
           whatsapp: app.whatsapp,
@@ -170,7 +177,9 @@ export class AgentsService {
         });
         user = await this.userRepo.save(user);
       } else {
-        await this.userRepo.update(user.id, { role: UserRole.AGENT });
+        const updateData: any = { role: UserRole.AGENT };
+        if (app.passwordHash) updateData.passwordHash = app.passwordHash;
+        await this.userRepo.update(user.id, updateData);
       }
 
       const referralCode = app.fullName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
@@ -191,6 +200,14 @@ export class AgentsService {
     }
 
     return this.findApplication(id);
+  }
+
+  async getCities(tenantId: string): Promise<string[]> {
+    const rows = await this.agentRepo.query(
+      `SELECT DISTINCT city FROM agents WHERE tenant_id = $1 AND city IS NOT NULL AND city != '' ORDER BY city ASC`,
+      [tenantId],
+    );
+    return rows.map((r: any) => r.city);
   }
 
   // Stats for admin dashboard

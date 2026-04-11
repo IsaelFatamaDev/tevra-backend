@@ -22,11 +22,12 @@ export class OrdersController {
     @Query('status') status?: string,
     @Query('customerId') customerId?: string,
     @Query('agentId') agentId?: string,
+    @Query('search') search?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
     return this.service.findAll(tenantId, {
-      status, customerId, agentId,
+      status, customerId, agentId, search,
       page: page ? parseInt(page) : 1,
       limit: limit ? parseInt(limit) : 20,
     });

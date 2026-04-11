@@ -20,11 +20,16 @@ export class AgentsController {
     @Query('city') city?: string,
     @Query('category') category?: string,
     @Query('status') status?: string,
+    @Query('search') search?: string,
   ) {
-    return this.service.findAll(
-      tenantId,
-      { city, category, status },
-    );
+    return this.service.findAll(tenantId, { city, category, status, search });
+  }
+
+  @Public()
+  @Get('cities')
+  @ApiOperation({ summary: 'List all unique agent cities' })
+  getCities(@TenantId() tenantId: string) {
+    return this.service.getCities(tenantId);
   }
 
   @Get('me')

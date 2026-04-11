@@ -16,8 +16,8 @@ export class UsersController {
   @Roles('admin', 'super_admin')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'List all users (admin)' })
-  findAll(@TenantId() tenantId: string, @Query('role') role?: string) {
-    return this.service.findAll(tenantId, role);
+  findAll(@TenantId() tenantId: string, @Query('role') role?: string, @Query('search') search?: string) {
+    return this.service.findAll(tenantId, { role, search });
   }
 
   @Get('me')

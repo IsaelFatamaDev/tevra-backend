@@ -51,6 +51,9 @@ export class AgentApplication {
   @Column({ name: 'reviewed_by', nullable: true })
   reviewedBy: string;
 
+  @Column({ name: 'password_hash', nullable: true })
+  passwordHash: string;
+
   @Column({ name: 'review_notes', type: 'text', nullable: true })
   reviewNotes: string;
 

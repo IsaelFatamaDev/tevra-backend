@@ -17,6 +17,7 @@ export class OrdersService {
     status?: string;
     customerId?: string;
     agentId?: string;
+    search?: string;
     page?: number;
     limit?: number;
   }) {
@@ -30,6 +31,12 @@ export class OrdersService {
     if (query?.status) qb.andWhere('o.status = :status', { status: query.status });
     if (query?.customerId) qb.andWhere('o.customerId = :customerId', { customerId: query.customerId });
     if (query?.agentId) qb.andWhere('o.agentId = :agentId', { agentId: query.agentId });
+    if (query?.search) {
+      qb.andWhere(
+        "(LOWER(o.orderNumber) LIKE :s OR LOWER(customer.firstName || ' ' || customer.lastName) LIKE :s OR LOWER(customer.email) LIKE :s)",
+        { s: `%${query.search.toLowerCase()}%` },
+      );
+    }
 
     qb.orderBy('o.createdAt', 'DESC');
 
@@ -99,17 +106,45 @@ export class OrdersService {
   async findByAgent(agentId: string) {
     return this.orderRepo.find({
       where: { agentId },
-      relations: ['items', 'customer'],
+      relations: ['items', 'customer', 'agent', 'agent.user'],
       order: { createdAt: 'DESC' },
     });
   }
 
   async findByAgentUserId(userId: string) {
-    return this.orderRepo.find({
+    const orders = await this.orderRepo.find({
       where: { agent: { userId } },
-      relations: ['items', 'customer'],
+      relations: ['items', 'customer', 'agent', 'agent.user'],
       order: { createdAt: 'DESC' },
     });
+    return orders.map(o => ({
+      id: o.id,
+      orderNumber: o.orderNumber,
+      status: o.status,
+      subtotal: o.subtotal,
+      shippingCost: o.shippingCost,
+      agentCommission: o.agentCommission,
+      total: o.total,
+      currency: o.currency,
+      shippingAddress: o.shippingAddress,
+      notes: o.notes,
+      estimatedDeliveryDate: o.estimatedDeliveryDate,
+      createdAt: o.createdAt,
+      customer: o.customer ? {
+        id: o.customer.id,
+        firstName: o.customer.firstName,
+        lastName: o.customer.lastName,
+        email: o.customer.email,
+        phone: o.customer.phone,
+      } : null,
+      agent: o.agent ? {
+        id: o.agent.id,
+        referralCode: o.agent.referralCode,
+        firstName: o.agent.user?.firstName,
+        lastName: o.agent.user?.lastName,
+      } : null,
+      items: o.items,
+    }));
   }
 
   async create(tenantId: string, dto: {

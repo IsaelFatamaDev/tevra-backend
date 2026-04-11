@@ -19,39 +19,41 @@ import { CommissionsModule } from './commissions/commissions.module';
 import { MediaModule } from './media/media.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { StorageModule } from './storage/storage.module';
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
-    TypeOrmModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: getDatabaseConfig,
-    }),
-    ThrottlerModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ([{
-        ttl: config.get('THROTTLE_TTL', 60000),
-        limit: config.get('THROTTLE_LIMIT', 100),
-      }]),
-    }),
-    ServeStaticModule.forRoot({
-      rootPath: join(process.cwd(), 'uploads'),
-      serveRoot: '/uploads',
-    }),
-    TenantsModule,
-    UsersModule,
-    AuthModule,
-    AgentsModule,
-    ProductsModule,
-    OrdersModule,
-    PaymentsModule,
-    ShipmentsModule,
-    ReviewsModule,
-    CampaignsModule,
-    CommissionsModule,
-    MediaModule,
-    NotificationsModule,
-    AnalyticsModule,
-  ],
+    imports: [
+        ConfigModule.forRoot({ isGlobal: true }),
+        TypeOrmModule.forRootAsync({
+            inject: [ConfigService],
+            useFactory: getDatabaseConfig,
+        }),
+        ThrottlerModule.forRootAsync({
+            inject: [ConfigService],
+            useFactory: (config: ConfigService) => ([{
+                ttl: config.get('THROTTLE_TTL', 60000),
+                limit: config.get('THROTTLE_LIMIT', 100),
+            }]),
+        }),
+        ServeStaticModule.forRoot({
+            rootPath: join(process.cwd(), 'uploads'),
+            serveRoot: '/uploads',
+        }),
+        TenantsModule,
+        UsersModule,
+        AuthModule,
+        AgentsModule,
+        ProductsModule,
+        OrdersModule,
+        PaymentsModule,
+        ShipmentsModule,
+        ReviewsModule,
+        CampaignsModule,
+        CommissionsModule,
+        MediaModule,
+        NotificationsModule,
+        AnalyticsModule,
+        StorageModule,
+    ],
 })
 export class AppModule { }

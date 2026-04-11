@@ -39,13 +39,28 @@ export class AnalyticsController {
 
   @Get('revenue-by-month')
   @Roles('admin', 'super_admin')
-  getRevenueByMonth(@TenantId() tenantId: string) {
-    return this.service.getRevenueByMonth(tenantId);
+  getRevenueByMonth(
+    @TenantId() tenantId: string,
+    @Query('period') period?: string,
+  ) {
+    return this.service.getRevenueByMonth(tenantId, period);
   }
 
   @Get('orders-by-city')
   @Roles('admin', 'super_admin')
-  getOrdersByCity(@TenantId() tenantId: string) {
-    return this.service.getOrdersByCity(tenantId);
+  getOrdersByCity(
+    @TenantId() tenantId: string,
+    @Query('period') period?: string,
+  ) {
+    return this.service.getOrdersByCity(tenantId, period);
+  }
+
+  @Get('orders-by-category')
+  @Roles('admin', 'super_admin')
+  getOrdersByCategory(
+    @TenantId() tenantId: string,
+    @Query('period') period?: string,
+  ) {
+    return this.service.getOrdersByCategory(tenantId, period);
   }
 }

@@ -8,11 +8,13 @@ export class ReviewsService {
   constructor(
     @InjectRepository(Review)
     private readonly repo: Repository<Review>,
-  ) {}
+  ) { }
 
   async findAll(tenantId: string, query?: {
     productId?: string;
     agentId?: string;
+    search?: string;
+    rating?: number;
     page?: number;
     limit?: number;
   }) {
@@ -22,6 +24,13 @@ export class ReviewsService {
 
     if (query?.productId) qb.andWhere('r.productId = :productId', { productId: query.productId });
     if (query?.agentId) qb.andWhere('r.agentId = :agentId', { agentId: query.agentId });
+    if (query?.rating) qb.andWhere('r.rating = :rating', { rating: query.rating });
+    if (query?.search) {
+      qb.andWhere(
+        "(LOWER(r.title) LIKE :s OR LOWER(r.body) LIKE :s OR LOWER(reviewer.firstName || ' ' || reviewer.lastName) LIKE :s)",
+        { s: `%${query.search.toLowerCase()}%` },
+      );
+    }
 
     qb.orderBy('r.createdAt', 'DESC');
 
@@ -64,16 +73,18 @@ export class ReviewsService {
     const avgRating = reviews.length > 0
       ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length
       : 0;
-    return { reviews: reviews.map(r => ({
-      id: r.id,
-      rating: r.rating,
-      title: r.title,
-      body: r.body,
-      isVerifiedPurchase: r.isVerifiedPurchase,
-      helpfulCount: r.helpfulCount,
-      reviewer: r.reviewer ? { firstName: r.reviewer.firstName, lastName: r.reviewer.lastName, avatarUrl: r.reviewer.avatarUrl } : null,
-      createdAt: r.createdAt,
-    })), avgRating: parseFloat(avgRating.toFixed(1)), total: reviews.length };
+    return {
+      reviews: reviews.map(r => ({
+        id: r.id,
+        rating: r.rating,
+        title: r.title,
+        body: r.body,
+        isVerifiedPurchase: r.isVerifiedPurchase,
+        helpfulCount: r.helpfulCount,
+        reviewer: r.reviewer ? { firstName: r.reviewer.firstName, lastName: r.reviewer.lastName, avatarUrl: r.reviewer.avatarUrl } : null,
+        createdAt: r.createdAt,
+      })), avgRating: parseFloat(avgRating.toFixed(1)), total: reviews.length
+    };
   }
 
   async findByAgent(agentId: string) {
@@ -85,15 +96,17 @@ export class ReviewsService {
     const avgRating = reviews.length > 0
       ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length
       : 0;
-    return { reviews: reviews.map(r => ({
-      id: r.id,
-      rating: r.rating,
-      title: r.title,
-      body: r.body,
-      isVerifiedPurchase: r.isVerifiedPurchase,
-      reviewer: r.reviewer ? { firstName: r.reviewer.firstName, lastName: r.reviewer.lastName, avatarUrl: r.reviewer.avatarUrl } : null,
-      createdAt: r.createdAt,
-    })), avgRating: parseFloat(avgRating.toFixed(1)), total: reviews.length };
+    return {
+      reviews: reviews.map(r => ({
+        id: r.id,
+        rating: r.rating,
+        title: r.title,
+        body: r.body,
+        isVerifiedPurchase: r.isVerifiedPurchase,
+        reviewer: r.reviewer ? { firstName: r.reviewer.firstName, lastName: r.reviewer.lastName, avatarUrl: r.reviewer.avatarUrl } : null,
+        createdAt: r.createdAt,
+      })), avgRating: parseFloat(avgRating.toFixed(1)), total: reviews.length
+    };
   }
 
   async create(tenantId: string, reviewerId: string, dto: Partial<Review>) {
@@ -104,5 +117,23 @@ export class ReviewsService {
   async markHelpful(id: string) {
     await this.repo.increment({ id }, 'helpfulCount', 1);
     return this.repo.findOne({ where: { id } });
+  }
+
+  async remove(id: string, tenantId: string) {
+    const review = await this.repo.findOne({ where: { id, tenantId } });
+    if (!review) throw new NotFoundException('Review not found');
+    await this.repo.remove(review);
+    return { deleted: true };
+  }
+
+  async moderate(id: string, tenantId: string, action: 'approve' | 'reject') {
+    const review = await this.repo.findOne({ where: { id, tenantId } });
+    if (!review) throw new NotFoundException('Review not found');
+    if (action === 'reject') {
+      await this.repo.remove(review);
+      return { deleted: true };
+    }
+    review.isVerifiedPurchase = true;
+    return this.repo.save(review);
   }
 }

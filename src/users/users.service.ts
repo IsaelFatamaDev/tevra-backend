@@ -13,14 +13,21 @@ export class UsersService {
     private readonly addressRepo: Repository<Address>,
   ) {}
 
-  findAll(tenantId: string, role?: string) {
-    const where: any = { tenantId, isActive: true };
-    if (role) where.role = role;
-    return this.usersRepo.find({
-      where,
-      select: ['id', 'email', 'firstName', 'lastName', 'phone', 'whatsapp', 'role', 'avatarUrl', 'isVerified', 'createdAt'],
-      order: { createdAt: 'DESC' },
-    });
+  findAll(tenantId: string, query?: { role?: string; search?: string }) {
+    const qb = this.usersRepo.createQueryBuilder('u')
+      .where('u.tenantId = :tenantId', { tenantId })
+      .andWhere('u.isActive = true')
+      .select(['u.id', 'u.email', 'u.firstName', 'u.lastName', 'u.phone', 'u.whatsapp', 'u.role', 'u.avatarUrl', 'u.isVerified', 'u.createdAt'])
+      .orderBy('u.createdAt', 'DESC');
+
+    if (query?.role) qb.andWhere('u.role = :role', { role: query.role });
+    if (query?.search) {
+      qb.andWhere(
+        "(LOWER(u.firstName || ' ' || u.lastName) LIKE :s OR LOWER(u.email) LIKE :s OR LOWER(u.phone) LIKE :s)",
+        { s: `%${query.search.toLowerCase()}%` },
+      );
+    }
+    return qb.getMany();
   }
 
   async findOne(id: string) {
