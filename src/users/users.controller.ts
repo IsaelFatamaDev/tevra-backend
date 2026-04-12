@@ -69,7 +69,18 @@ export class UsersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'super_admin')
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get user by id (admin)' })
   findOne(@Param('id') id: string) {
     return this.service.findOne(id);
+  }
+
+  @Put(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'super_admin')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update user (admin)' })
+  updateUserAsAdmin(@Param('id') id: string, @Body() dto: any) {
+    const { passwordHash, ...safe } = dto;
+    return this.service.update(id, safe);
   }
 }

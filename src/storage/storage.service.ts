@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   S3Client,
@@ -18,7 +18,7 @@ export class StorageService implements OnModuleInit {
   private readonly logger = new Logger(StorageService.name);
 
   constructor(private readonly configService: ConfigService) {
-    this.endpoint = this.configService.get('MINIO_ENDPOINT', 'http://minio-vaplex.ddns.net:9000');
+    this.endpoint = this.configService.get('MINIO_ENDPOINT');
     this.bucket = this.configService.get('MINIO_BUCKET', 'tevra');
 
     this.s3 = new S3Client({
@@ -72,7 +72,7 @@ export class StorageService implements OnModuleInit {
       );
     } catch (err) {
       this.logger.error(`MinIO upload failed: ${err.message}`, err.stack);
-      throw err;
+      throw new InternalServerErrorException(`Error de MinIO (Posible desincronización de reloj en PC local): ${err.message}`);
     }
 
     const url = `${this.endpoint}/${this.bucket}/${key}`;

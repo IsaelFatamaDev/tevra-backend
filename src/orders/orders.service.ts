@@ -203,10 +203,15 @@ export class OrdersService {
       order.deliveredAt = new Date();
     }
     await this.orderRepo.save(order);
+
+    await this.orderRepo.manager.query(
+      `UPDATE shipments SET status = $1, updated_at = NOW() WHERE order_id = $2`,
+      [status, id]
+    );
+
     return this.findOne(id);
   }
 
-  // Stats for admin dashboard
   async getStats(tenantId: string) {
     const [totalSales] = await this.orderRepo.query(
       `SELECT COALESCE(SUM(total), 0) as total FROM orders WHERE tenant_id = $1 AND status NOT IN ('cancelled','pending')`, [tenantId]

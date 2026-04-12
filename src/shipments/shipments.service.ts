@@ -39,14 +39,26 @@ export class ShipmentsService {
     return { ...shipment, events };
   }
 
-  async findByTracking(trackingNumber: string) {
-    const shipment = await this.shipmentRepo.findOne({ where: { trackingNumber } });
+  async findByTracking(trackingNumberOrOrderNum: string) {
+    let shipment = await this.shipmentRepo.createQueryBuilder('shipment')
+      .leftJoinAndSelect('shipment.order', 'order')
+      .leftJoinAndSelect('order.agent', 'agent')
+      .leftJoinAndSelect('agent.user', 'agentUser') 
+      .where('shipment.trackingNumber = :code', { code: trackingNumberOrOrderNum })
+      .orWhere('order.orderNumber = :code', { code: trackingNumberOrOrderNum })
+      .getOne();
+
     if (!shipment) throw new NotFoundException('Shipment not found');
     const events = await this.eventRepo.find({
       where: { shipmentId: shipment.id },
       order: { occurredAt: 'ASC' },
     });
-    return { ...shipment, events };
+    return {
+      ...shipment,
+      events,
+      description: `Pedido ${shipment.order?.orderNumber || trackingNumberOrOrderNum}`,
+      agentName: shipment.order?.agent?.user ? `${shipment.order.agent.user.firstName} ${shipment.order.agent.user.lastName}` : undefined
+    };
   }
 
   async create(tenantId: string, dto: Partial<Shipment>) {

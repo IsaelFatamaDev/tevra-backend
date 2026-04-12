@@ -5,12 +5,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { User, UserRole } from '../users/entities/user.entity';
+import { Agent, AgentStatus } from '../agents/entities/agent.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly usersRepo: Repository<User>,
+    @InjectRepository(Agent)
+    private readonly agentsRepo: Repository<Agent>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) { }
@@ -51,6 +54,13 @@ export class AuthService {
 
     const valid = await bcrypt.compare(password, user.passwordHash);
     if (!valid) throw new UnauthorizedException('Invalid credentials');
+
+    if (user.role === UserRole.AGENT) {
+      const agent = await this.agentsRepo.findOne({ where: { userId: user.id } });
+      if (!agent || agent.status !== AgentStatus.ACTIVE) {
+        throw new UnauthorizedException('Tu cuenta de agente está inactiva o suspendida.');
+      }
+    }
 
     user.lastLoginAt = new Date();
     await this.usersRepo.save(user);
