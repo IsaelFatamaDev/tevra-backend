@@ -75,8 +75,9 @@ export class StorageService implements OnModuleInit {
       throw new InternalServerErrorException(`Error de MinIO (Posible desincronización de reloj en PC local): ${err.message}`);
     }
 
-    const url = `${this.endpoint}/${this.bucket}/${key}`;
-    this.logger.log(`Uploaded successfully: ${url}`);
+    const apiPublicUrl = this.configService.get('API_PUBLIC_URL', 'https://tevra.ddns.net/backend/api/v1');
+    const url = `${apiPublicUrl}/storage/${this.bucket}/${key}`;
+    this.logger.log(`Uploaded successfully: MinIO internal [${key}], Exposed via Proxy [${url}]`);
     return { key, url };
   }
 
