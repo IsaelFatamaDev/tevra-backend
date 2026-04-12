@@ -3,8 +3,6 @@ name: Deploy Backend to Docker Hub
 on:
   push:
     branches: [ "main", "master" ]
-    paths:
-      - 'tevra-backend/**'
   workflow_dispatch:
 
 jobs:
@@ -27,8 +25,8 @@ jobs:
       - name: Build and push backend image
         uses: docker/build-push-action@v5
         with:
-          context: ./tevra-backend
-          file: ./tevra-backend/Dockerfile
+          context: .
+          file: ./Dockerfile
           push: true
           tags: isaelfatamadev/tevra-backend:latest
 
