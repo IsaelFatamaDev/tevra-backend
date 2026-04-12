@@ -155,7 +155,7 @@ export class ProductsService {
 
     let imageUrl: string;
 
-    if (base64Image.startsWith('http://') || base64Image.startsWith('https://')) {
+    if (base64Image.startsWith('http://') || base64Image.startsWith('http://')) {
       imageUrl = base64Image;
     } else {
       const matches = base64Image.match(/^data:([a-zA-Z0-9+/]+\/[a-zA-Z0-9+/]+);base64,(.+)$/);
