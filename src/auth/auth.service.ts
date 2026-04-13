@@ -2,8 +2,11 @@ import { Injectable, UnauthorizedException, ConflictException, BadRequestExcepti
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Not } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
+import { randomUUID } from 'crypto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { UserRegisteredEvent } from '../common/events/user-registered.event';
 import { User, UserRole } from '../users/entities/user.entity';
 import { Agent, AgentStatus } from '../agents/entities/agent.entity';
 
@@ -16,7 +19,42 @@ export class AuthService {
     private readonly agentsRepo: Repository<Agent>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly eventEmitter: EventEmitter2,
   ) { }
+
+  async checkAvailability(params: {
+    email?: string;
+    phone?: string;
+    whatsapp?: string;
+    excludeUserId?: string;
+    tenantId: string;
+  }) {
+    const { email, phone, whatsapp, excludeUserId, tenantId } = params;
+    const result: { email?: string; phone?: string; whatsapp?: string } = {};
+
+    if (email) {
+      const where: any = { email, tenantId };
+      if (excludeUserId) where.id = Not(excludeUserId);
+      const found = await this.usersRepo.findOne({ where });
+      if (found) result.email = 'El email ya está registrado';
+    }
+
+    if (phone) {
+      const where: any = { phone, tenantId };
+      if (excludeUserId) where.id = Not(excludeUserId);
+      const found = await this.usersRepo.findOne({ where });
+      if (found) result.phone = 'El número de teléfono ya está registrado';
+    }
+
+    if (whatsapp) {
+      const where: any = { whatsapp, tenantId };
+      if (excludeUserId) where.id = Not(excludeUserId);
+      const found = await this.usersRepo.findOne({ where });
+      if (found) result.whatsapp = 'El número de WhatsApp ya está registrado';
+    }
+
+    return result;
+  }
 
   async register(dto: {
     email: string;
@@ -27,21 +65,56 @@ export class AuthService {
     whatsapp?: string;
     tenantId: string;
   }) {
-    const exists = await this.usersRepo.findOne({
+    // Validate email uniqueness
+    const emailExists = await this.usersRepo.findOne({
       where: { email: dto.email, tenantId: dto.tenantId },
     });
-    if (exists) throw new ConflictException('Email already registered');
+    if (emailExists) throw new ConflictException('El email ya está registrado');
+
+    // Validate phone uniqueness
+    if (dto.phone) {
+      const phoneExists = await this.usersRepo.findOne({
+        where: { phone: dto.phone, tenantId: dto.tenantId },
+      });
+      if (phoneExists) throw new ConflictException('El número de teléfono ya está registrado');
+    }
+
+    // Validate whatsapp uniqueness
+    if (dto.whatsapp) {
+      const whatsappExists = await this.usersRepo.findOne({
+        where: { whatsapp: dto.whatsapp, tenantId: dto.tenantId },
+      });
+      if (whatsappExists) throw new ConflictException('El número de WhatsApp ya está registrado');
+    }
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
+    const verificationToken = randomUUID();
     const { password, ...userData } = dto;
     const user = this.usersRepo.create({
       ...userData,
       passwordHash,
       role: UserRole.CUSTOMER,
       isActive: true,
+      isVerified: false,
+      verificationToken,
     });
     const saved = await this.usersRepo.save(user);
-    return this.generateTokens(saved as User);
+
+    // Emit event for email notification (includes plain password for first welcome email only)
+    this.eventEmitter.emit(
+      'user.registered',
+      new UserRegisteredEvent(
+        (saved as User).email,
+        (saved as User).firstName,
+        dto.password,
+        verificationToken,
+        (saved as User).tenantId,
+      ),
+    );
+
+    return {
+      message: 'Account created successfully. Please check your email to verify your account before logging in.',
+    };
   }
 
   async login(email: string, password: string, tenantId: string) {
@@ -54,6 +127,11 @@ export class AuthService {
 
     const valid = await bcrypt.compare(password, user.passwordHash);
     if (!valid) throw new UnauthorizedException('Invalid credentials');
+
+    // Block unverified customers from logging in
+    if (user.role === UserRole.CUSTOMER && !user.isVerified) {
+      throw new UnauthorizedException('Your account has not been verified. Please check your email and click the verification link.');
+    }
 
     if (user.role === UserRole.AGENT) {
       const agent = await this.agentsRepo.findOne({ where: { userId: user.id } });
@@ -103,6 +181,19 @@ export class AuthService {
     user.passwordHash = await bcrypt.hash(newPassword, 10);
     await this.usersRepo.save(user);
     return { message: 'Password changed successfully' };
+  }
+
+  async verifyEmail(token: string) {
+    const user = await this.usersRepo.findOne({
+      where: { verificationToken: token },
+    });
+    if (!user) throw new BadRequestException('Invalid or expired verification token.');
+
+    user.isVerified = true;
+    user.verificationToken = null;
+    await this.usersRepo.save(user);
+
+    return { message: 'Your account has been verified successfully. You can now log in.' };
   }
 
   private async generateTokens(user: User) {

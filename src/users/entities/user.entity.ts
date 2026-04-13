@@ -56,6 +56,9 @@ export class User {
   @Column({ name: 'last_login_at', nullable: true })
   lastLoginAt: Date;
 
+  @Column({ name: 'verification_token', nullable: true })
+  verificationToken: string;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

@@ -1,0 +1,58 @@
+<div style="font-family: 'Segoe UI', Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; background-color: #ffffff;">
+  <!-- Header -->
+  <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 30px 20px; text-align: center;">
+    <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600; letter-spacing: 1px;">TeVra</h1>
+    <p style="color: #a0aec0; margin: 8px 0 0; font-size: 14px;">Your Trusted Shopping Platform</p>
+  </div>
+
+  <!-- Body -->
+  <div style="padding: 30px 25px;">
+    <h2 style="color: #1a1a2e; margin: 0 0 20px; font-size: 20px;">Welcome, {{firstName}}!</h2>
+
+    <p style="line-height: 1.7; margin: 0 0 15px;">Thank you for creating your account with <strong>TeVra</strong>. We are delighted to have you on board. Below you will find your account credentials for future reference:</p>
+
+    <!-- Credentials Box -->
+    <div style="background-color: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 18px 20px; margin: 20px 0;">
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 6px 0; color: #718096; font-size: 14px; width: 100px;">Email:</td>
+          <td style="padding: 6px 0; font-weight: 600; color: #2d3748;">{{email}}</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 0; color: #718096; font-size: 14px;">Password:</td>
+          <td style="padding: 6px 0; font-weight: 600; color: #2d3748;">{{password}}</td>
+        </tr>
+      </table>
+    </div>
+
+    <p style="line-height: 1.7; margin: 0 0 20px; color: #e53e3e; font-size: 13px;">
+      <strong>Important:</strong> For your security, we recommend changing your password after your first login.
+    </p>
+
+    <!-- Verification CTA -->
+    <p style="line-height: 1.7; margin: 0 0 15px;">Before you can log in, please verify your email address by clicking the button below:</p>
+
+    <div style="text-align: center; margin: 25px 0;">
+      <a href="{{verificationUrl}}" style="display: inline-block; background: linear-gradient(135deg, #fca311 0%, #e8920e 100%); color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 6px; font-size: 16px; font-weight: 600; letter-spacing: 0.5px;">Verify My Account</a>
+    </div>
+
+    <p style="line-height: 1.7; margin: 0 0 10px; font-size: 13px; color: #718096;">If the button does not work, copy and paste the following link into your browser:</p>
+    <p style="word-break: break-all; font-size: 12px; color: #4a90d9; margin: 0 0 20px;">{{verificationUrl}}</p>
+
+    <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 25px 0;">
+
+    <p style="line-height: 1.7; margin: 0 0 5px;">Once verified, you can access your account at:</p>
+    <p style="margin: 0 0 20px;"><a href="{{loginUrl}}" style="color: #4a90d9; text-decoration: none; font-weight: 600;">{{loginUrl}}</a></p>
+
+    <p style="line-height: 1.7; margin: 0;">
+      Best regards,<br>
+      <strong>The TeVra Team</strong>
+    </p>
+  </div>
+
+  <!-- Footer -->
+  <div style="background-color: #f7fafc; padding: 15px 25px; text-align: center; border-top: 1px solid #e2e8f0;">
+    <p style="margin: 0; font-size: 12px; color: #a0aec0;">© 2026 TeVra LLC. All rights reserved.</p>
+    <p style="margin: 5px 0 0; font-size: 11px; color: #cbd5e0;">This is an automated message. Please do not reply directly to this email.</p>
+  </div>
+</div>

@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order, OrderStatus } from './entities/order.entity';
 import { OrderItem } from './entities/order-item.entity';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { OrderStatusUpdatedEvent } from '../common/events/order-status-updated.event';
 
 @Injectable()
 export class OrdersService {
@@ -11,6 +13,7 @@ export class OrdersService {
     private readonly orderRepo: Repository<Order>,
     @InjectRepository(OrderItem)
     private readonly itemRepo: Repository<OrderItem>,
+    private readonly eventEmitter: EventEmitter2,
   ) { }
 
   async findAll(tenantId: string, query?: {
@@ -198,6 +201,7 @@ export class OrdersService {
 
   async updateStatus(id: string, status: string) {
     const order = await this.findOne(id);
+    const oldStatus = order.status;
     order.status = status as any;
     if (status === 'delivered') {
       order.deliveredAt = new Date();
@@ -209,7 +213,27 @@ export class OrdersService {
       [status, id]
     );
 
-    return this.findOne(id);
+    const updatedOrder = await this.findOne(id);
+
+    const customerName = updatedOrder.customer ? `${updatedOrder.customer.firstName} ${updatedOrder.customer.lastName}` : 'Cliente';
+    const customerEmail = updatedOrder.customer?.email;
+    const agentEmail = updatedOrder.agent?.user?.email;
+
+    this.eventEmitter.emit(
+      'order.status-updated',
+      new OrderStatusUpdatedEvent(
+        updatedOrder.id,
+        updatedOrder.orderNumber,
+        customerEmail,
+        customerName,
+        oldStatus,
+        status,
+        updatedOrder.tenantId,
+        agentEmail
+      )
+    );
+
+    return updatedOrder;
   }
 
   async getStats(tenantId: string) {

@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Not } from 'typeorm';
 import { User } from './entities/user.entity';
 import { Address } from './entities/address.entity';
 
@@ -40,6 +40,30 @@ export class UsersService {
   }
 
   async update(id: string, dto: Partial<User>) {
+    const user = await this.usersRepo.findOne({ where: { id } });
+    if (!user) throw new NotFoundException('User not found');
+
+    if (dto.phone) {
+      const phoneExists = await this.usersRepo.findOne({
+        where: { phone: dto.phone, tenantId: user.tenantId, id: Not(id) },
+      });
+      if (phoneExists) throw new ConflictException('El número de teléfono ya está registrado');
+    }
+
+    if (dto.whatsapp) {
+      const whatsappExists = await this.usersRepo.findOne({
+        where: { whatsapp: dto.whatsapp, tenantId: user.tenantId, id: Not(id) },
+      });
+      if (whatsappExists) throw new ConflictException('El número de WhatsApp ya está registrado');
+    }
+
+    if (dto.email && dto.email !== user.email) {
+      const emailExists = await this.usersRepo.findOne({
+        where: { email: dto.email, tenantId: user.tenantId, id: Not(id) },
+      });
+      if (emailExists) throw new ConflictException('El email ya está registrado');
+    }
+
     await this.usersRepo.update(id, { ...dto, updatedAt: new Date() });
     return this.findOne(id);
   }

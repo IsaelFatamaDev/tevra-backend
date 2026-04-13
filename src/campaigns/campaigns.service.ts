@@ -1,9 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Campaign } from './entities/campaign.entity';
+import { Campaign, CampaignStatus } from './entities/campaign.entity';
 import { CampaignTemplate } from './entities/campaign-template.entity';
 import { AudienceSegment } from './entities/audience-segment.entity';
+import { User } from '../users/entities/user.entity';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { CampaignLaunchedEvent } from '../common/events/campaign-launched.event';
 
 @Injectable()
 export class CampaignsService {
@@ -14,6 +17,9 @@ export class CampaignsService {
     private readonly templateRepo: Repository<CampaignTemplate>,
     @InjectRepository(AudienceSegment)
     private readonly segmentRepo: Repository<AudienceSegment>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   // Campaigns
@@ -37,6 +43,49 @@ export class CampaignsService {
   async updateCampaign(id: string, dto: Partial<Campaign>) {
     await this.campaignRepo.update(id, { ...dto, updatedAt: new Date() });
     return this.findCampaign(id);
+  }
+
+  async launchCampaign(id: string) {
+    const campaign = await this.findCampaign(id);
+    if (campaign.status === CampaignStatus.SENT) {
+      throw new Error('Campaign has already been sent.');
+    }
+
+    // Default to active users, can be narrowed down if targeting specific segment
+    let users = await this.userRepo.find({
+      where: { tenantId: campaign.tenantId, isActive: true },
+      select: ['email'],
+    });
+
+    // If campaign has a related audienceSegmentId, we could filter here
+    /*
+    if (campaign.audienceSegmentId) {
+        ... apply segment rules
+    }
+    */
+
+    const emails = users.map(u => u.email).filter(Boolean);
+
+    if (emails.length > 0) {
+      this.eventEmitter.emit(
+        'campaign.launched',
+        new CampaignLaunchedEvent(
+          campaign.id,
+          campaign.tenantId,
+          campaign.subject || 'Nuevas Promociones en TeVra',
+          campaign.message,
+          emails,
+        )
+      );
+
+      // Update basic details after launch
+      campaign.status = CampaignStatus.SENT;
+      campaign.sentAt = new Date();
+      campaign.recipientCount = emails.length;
+      await this.campaignRepo.save(campaign);
+    }
+    
+    return campaign;
   }
 
   async getStats(tenantId: string) {

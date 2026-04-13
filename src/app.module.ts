@@ -5,6 +5,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { getDatabaseConfig } from './config/database.config';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { TenantsModule } from './tenants/tenants.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
@@ -20,6 +21,7 @@ import { MediaModule } from './media/media.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { StorageModule } from './storage/storage.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
     imports: [
@@ -39,6 +41,7 @@ import { StorageModule } from './storage/storage.module';
             rootPath: join(process.cwd(), 'uploads'),
             serveRoot: '/uploads',
         }),
+        EventEmitterModule.forRoot(),
         TenantsModule,
         UsersModule,
         AuthModule,
@@ -54,6 +57,7 @@ import { StorageModule } from './storage/storage.module';
         NotificationsModule,
         AnalyticsModule,
         StorageModule,
+        MailModule,
     ],
 })
 export class AppModule { }
