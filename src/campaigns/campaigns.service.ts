@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { Campaign, CampaignStatus } from './entities/campaign.entity';
 import { CampaignTemplate } from './entities/campaign-template.entity';
 import { AudienceSegment } from './entities/audience-segment.entity';
-import { User } from '../users/entities/user.entity';
+import { User, UserRole } from '../users/entities/user.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CampaignLaunchedEvent } from '../common/events/campaign-launched.event';
 
@@ -45,36 +45,76 @@ export class CampaignsService {
     return this.findCampaign(id);
   }
 
+  async estimateRecipients(tenantId: string, type: string, audienceType: string) {
+    const whereClause: any = { tenantId, isActive: true };
+    if (audienceType === 'agents') {
+      whereClause.role = UserRole.AGENT;
+    } else if (audienceType === 'all_customers' || audienceType === 'customers_by_city') {
+      whereClause.role = UserRole.CUSTOMER;
+    } else if (audienceType === 'vip' || audienceType === 'inactive') { // Mock for UI demo logic
+      whereClause.role = UserRole.CUSTOMER; 
+    }
+
+    const users = await this.userRepo.find({
+      where: whereClause,
+      select: ['email', 'whatsapp'],
+    });
+
+    let count = 0;
+    if (type === 'whatsapp') {
+      count = users.filter(u => !!u.whatsapp).length;
+    } else if (type === 'email') {
+      count = users.filter(u => !!u.email).length;
+    } else {
+      count = users.filter(u => !!u.email || !!u.whatsapp).length;
+    }
+    return { count };
+  }
+
   async launchCampaign(id: string) {
     const campaign = await this.findCampaign(id);
     if (campaign.status === CampaignStatus.SENT) {
       throw new Error('Campaign has already been sent.');
     }
 
-    // Default to active users, can be narrowed down if targeting specific segment
-    let users = await this.userRepo.find({
-      where: { tenantId: campaign.tenantId, isActive: true },
-      select: ['email'],
+    // 1. Build the query based on audienceType
+    const whereClause: any = { tenantId: campaign.tenantId, isActive: true };
+
+    if (campaign.audienceType === 'agents') {
+      whereClause.role = UserRole.AGENT;
+    } else if (campaign.audienceType === 'all_customers' || campaign.audienceType === 'customers_by_city') {
+      whereClause.role = UserRole.CUSTOMER;
+    }
+
+    const users = await this.userRepo.find({
+      where: whereClause,
+      select: ['email', 'whatsapp'],
     });
 
-    // If campaign has a related audienceSegmentId, we could filter here
-    /*
-    if (campaign.audienceSegmentId) {
-        ... apply segment rules
+    // 2. Filter contacts based on the campaign channel (type)
+    let emails: string[] = [];
+    let phones: string[] = [];
+
+    if (campaign.type === 'whatsapp') {
+      phones = users.map(u => u.whatsapp).filter(Boolean);
+    } else if (campaign.type === 'email') {
+      emails = users.map(u => u.email).filter(Boolean);
+    } else {
+      // both or fallback
+      emails = users.map(u => u.email).filter(Boolean);
+      phones = users.map(u => u.whatsapp).filter(Boolean);
     }
-    */
 
-    const emails = users.map(u => u.email).filter(Boolean);
-
-    if (emails.length > 0) {
+    if (emails.length > 0 || phones.length > 0) {
       this.eventEmitter.emit(
         'campaign.launched',
         new CampaignLaunchedEvent(
           campaign.id,
           campaign.tenantId,
-          campaign.subject || 'Nuevas Promociones en TeVra',
+          campaign.subject || 'New Promotions at TeVra',
           campaign.message,
           emails,
+          phones,
         )
       );
 

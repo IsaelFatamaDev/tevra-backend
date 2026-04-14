@@ -22,6 +22,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { StorageModule } from './storage/storage.module';
 import { MailModule } from './mail/mail.module';
+import { WhatsAppModule } from './whatsapp/whatsapp.module';
 
 @Module({
     imports: [
@@ -58,6 +59,7 @@ import { MailModule } from './mail/mail.module';
         AnalyticsModule,
         StorageModule,
         MailModule,
+        WhatsAppModule,
     ],
 })
 export class AppModule { }

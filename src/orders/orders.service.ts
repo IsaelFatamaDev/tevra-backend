@@ -218,6 +218,8 @@ export class OrdersService {
     const customerName = updatedOrder.customer ? `${updatedOrder.customer.firstName} ${updatedOrder.customer.lastName}` : 'Cliente';
     const customerEmail = updatedOrder.customer?.email;
     const agentEmail = updatedOrder.agent?.user?.email;
+    const customerWhatsapp = updatedOrder.customer?.whatsapp;
+    const agentWhatsapp = updatedOrder.agent?.user?.whatsapp;
 
     this.eventEmitter.emit(
       'order.status-updated',
@@ -229,7 +231,9 @@ export class OrdersService {
         oldStatus,
         status,
         updatedOrder.tenantId,
-        agentEmail
+        agentEmail,
+        customerWhatsapp,
+        agentWhatsapp,
       )
     );
 

@@ -5,5 +5,6 @@ export class UserRegisteredEvent {
     public readonly password: string,
     public readonly verificationToken: string,
     public readonly tenantId: string,
+    public readonly whatsapp?: string,
   ) {}
 }

@@ -5,5 +5,6 @@ export class CampaignLaunchedEvent {
     public readonly subject: string,
     public readonly content: string,
     public readonly targetAudienceEmails: string[],
+    public readonly targetAudiencePhones: string[],
   ) {}
 }

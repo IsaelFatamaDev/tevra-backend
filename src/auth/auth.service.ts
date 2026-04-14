@@ -109,6 +109,7 @@ export class AuthService {
         dto.password,
         verificationToken,
         (saved as User).tenantId,
+        (saved as User).whatsapp,
       ),
     );
 
