@@ -10,5 +10,5 @@ export class OrderStatusUpdatedEvent {
     public readonly agentEmail?: string,
     public readonly customerWhatsapp?: string,
     public readonly agentWhatsapp?: string,
-  ) {}
+  ) { }
 }

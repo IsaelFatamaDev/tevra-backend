@@ -1,4 +1,4 @@
-import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
@@ -17,7 +17,6 @@ export class WhatsAppService {
     this.baseUrl = this.configService.get('EVOLUTION_API_URL', 'http://localhost:9095');
     this.apiKey = this.configService.get('EVOLUTION_API_KEY', '');
     this.instanceName = this.configService.get('EVOLUTION_INSTANCE_NAME', 'tevra-whatsapp');
-    this.logger.log(`Evolution API configured: ${this.baseUrl} | instance: ${this.instanceName}`);
   }
 
   private get headers() {
@@ -27,14 +26,8 @@ export class WhatsAppService {
     };
   }
 
-  private extractError(error: any): string {
-    const data = error?.response?.data;
-    if (data) return JSON.stringify(data);
-    return error?.message || 'Unknown error';
-  }
-
   /**
-   * Create a WhatsApp instance in Evolution API v1.8.x
+   * Create a WhatsApp instance in Evolution API
    */
   async createInstance(): Promise<any> {
     try {
@@ -44,25 +37,21 @@ export class WhatsAppService {
           {
             instanceName: this.instanceName,
             qrcode: true,
+            integration: 'WHATSAPP-BAILEYS',
           },
           { headers: this.headers },
         ),
       );
-      this.logger.log(`Instance "${this.instanceName}" created`);
+      this.logger.log(`Instance "${this.instanceName}" created successfully`);
       return data;
     } catch (error) {
-      const msg = this.extractError(error);
-      if (msg.includes('already') || msg.includes('exists') || msg.includes('use') || error?.response?.status === 403) {
-        this.logger.warn(`Instance "${this.instanceName}" already exists — reusing`);
-        return { status: 'already_exists', instanceName: this.instanceName };
-      }
-      this.logger.error(`Error creating instance: ${msg}`);
-      throw new HttpException(`Evolution API error: ${msg}`, error?.response?.status || HttpStatus.BAD_GATEWAY);
+      this.logger.error(`Error creating instance: ${error.message}`);
+      throw error;
     }
   }
 
   /**
-   * Get QR code to connect WhatsApp (v1.8.x)
+   * Get QR code to connect WhatsApp
    */
   async getQrCode(): Promise<any> {
     try {
@@ -72,17 +61,15 @@ export class WhatsAppService {
           { headers: this.headers },
         ),
       );
-      this.logger.log(`QR response keys: ${JSON.stringify(Object.keys(data || {}))}`);
       return data;
     } catch (error) {
-      const msg = this.extractError(error);
-      this.logger.error(`Error getting QR code: ${msg}`);
-      throw new HttpException(`Evolution API error: ${msg}`, error?.response?.status || HttpStatus.BAD_GATEWAY);
+      this.logger.error(`Error getting QR code: ${error.message}`);
+      throw error;
     }
   }
 
   /**
-   * Check connection status (v1.8.x)
+   * Check connection status of the WhatsApp instance
    */
   async getConnectionStatus(): Promise<any> {
     try {
@@ -94,16 +81,19 @@ export class WhatsAppService {
       );
       return data;
     } catch (error) {
-      this.logger.error(`Error checking status: ${this.extractError(error)}`);
-      return { instance: { state: 'close' } };
+      this.logger.error(`Error checking connection status: ${error.message}`);
+      throw error;
     }
   }
 
   /**
-   * Send a text message via WhatsApp (v1.8.x format)
+   * Send a text message via WhatsApp
+   * @param phone Phone number with country code (e.g. "5511999999999")
+   * @param text Message text
    */
   async sendText(phone: string, text: string): Promise<any> {
     try {
+      // Normalize phone: remove spaces, dashes, plus, etc.
       const normalizedPhone = phone.replace(/[\s\-\+\(\)]/g, '');
 
       const { data } = await firstValueFrom(
@@ -111,7 +101,7 @@ export class WhatsAppService {
           `${this.baseUrl}/message/sendText/${this.instanceName}`,
           {
             number: normalizedPhone,
-            textMessage: { text },
+            text: text,
           },
           { headers: this.headers },
         ),
@@ -119,13 +109,14 @@ export class WhatsAppService {
       this.logger.log(`WhatsApp message sent to ${normalizedPhone}`);
       return data;
     } catch (error) {
-      this.logger.warn(`Failed to send WhatsApp to ${phone}: ${this.extractError(error)}`);
+      this.logger.warn(`Failed to send WhatsApp to ${phone}: ${error.message}`);
+      // Don't throw — WhatsApp is a secondary channel; we should not block flows
       return null;
     }
   }
 
   /**
-   * Disconnect (logout) the WhatsApp instance (v1.8.x)
+   * Disconnect (logout) the WhatsApp instance
    */
   async logout(): Promise<any> {
     try {
@@ -138,9 +129,8 @@ export class WhatsAppService {
       this.logger.log(`Instance "${this.instanceName}" logged out`);
       return data;
     } catch (error) {
-      const msg = this.extractError(error);
-      this.logger.error(`Error logging out: ${msg}`);
-      throw new HttpException(`Evolution API error: ${msg}`, error?.response?.status || HttpStatus.BAD_GATEWAY);
+      this.logger.error(`Error logging out: ${error.message}`);
+      throw error;
     }
   }
 }

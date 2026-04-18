@@ -26,16 +26,6 @@ export class CampaignsController {
     return this.service.getStats(tenantId);
   }
 
-  @Get('estimate')
-  @ApiOperation({ summary: 'Estimate recipients based on channel and audience' })
-  estimateRecipients(
-    @TenantId() tenantId: string, 
-    @Query('type') type: string, 
-    @Query('audienceType') audienceType: string
-  ) {
-    return this.service.estimateRecipients(tenantId, type, audienceType);
-  }
-
   @Get('templates')
   @ApiOperation({ summary: 'List templates' })
   findTemplates(@TenantId() tenantId: string) {
@@ -66,11 +56,9 @@ export class CampaignsController {
   }
 
   @Post()
-  @ApiOperation({ summary: 'Create and launch campaign' })
-  async create(@TenantId() tenantId: string, @Body() dto: any, @Request() req: any) {
-    const campaign = await this.service.createCampaign(tenantId, req.user.id, dto);
-    // Auto-launch since we don't have a schedule flow yet
-    return this.service.launchCampaign(campaign.id);
+  @ApiOperation({ summary: 'Create campaign' })
+  create(@TenantId() tenantId: string, @Body() dto: any, @Request() req: any) {
+    return this.service.createCampaign(tenantId, req.user.id, dto);
   }
 
   @Put(':id')
