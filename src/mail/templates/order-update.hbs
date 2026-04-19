@@ -1,47 +1,49 @@
-<div style="font-family: 'Segoe UI', Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; background-color: #ffffff;">
-  <!-- Header -->
-  <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 25px 20px; text-align: center;">
-    <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 600; letter-spacing: 1px;">TeVra</h1>
-    <p style="color: #fca311; margin: 8px 0 0; font-size: 15px; font-weight: 500;">Order Status Update</p>
+<div style="font-family: 'Segoe UI', Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; background-color: #ffffff;">
+
+  <!-- Header with logo -->
+  <div style="background: linear-gradient(135deg, #0a2540 0%, #1a1a2e 100%); padding: 36px 24px; text-align: center;">
+    <img src="https://tevra.ddns.net/LogoTevra.png" alt="TeVra" style="height: 60px; width: auto; object-fit: contain; display: block; margin: 0 auto 12px;" />
+    <p style="color: #ff6b6b; margin: 0; font-size: 13px; font-weight: 700; letter-spacing: 0.1em;">Actualización de tu pedido</p>
   </div>
 
   <!-- Body -->
-  <div style="padding: 30px 25px;">
-    <p style="line-height: 1.7; margin: 0 0 15px;">Dear <strong>{{name}}</strong>,</p>
+  <div style="padding: 36px 32px;">
+    <p style="line-height: 1.7; margin: 0 0 16px; color: #4a5568;">Hola <strong>{{name}}</strong>,</p>
 
-    <p style="line-height: 1.7; margin: 0 0 15px;">We would like to inform you that your order has been updated:</p>
+    <p style="line-height: 1.7; margin: 0 0 20px; color: #4a5568;">Tu pedido ha sido actualizado. Aquí tienes los detalles:</p>
 
     <!-- Order Info Box -->
-    <div style="background-color: #f7fafc; border-left: 4px solid #fca311; border-radius: 4px; padding: 18px 20px; margin: 20px 0;">
+    <div style="background-color: #f7fafc; border-left: 4px solid #ff6b6b; border-radius: 6px; padding: 20px 24px; margin: 24px 0;">
       <table style="width: 100%; border-collapse: collapse;">
         <tr>
-          <td style="padding: 6px 0; color: #718096; font-size: 14px; width: 130px;">Order Number:</td>
-          <td style="padding: 6px 0; font-weight: 600; color: #2d3748;">{{orderNumber}}</td>
+          <td style="padding: 8px 0; color: #718096; font-size: 13px; width: 140px;">Número de pedido:</td>
+          <td style="padding: 8px 0; font-weight: 700; color: #2d3748;">{{orderNumber}}</td>
         </tr>
         <tr>
-          <td style="padding: 6px 0; color: #718096; font-size: 14px;">New Status:</td>
-          <td style="padding: 6px 0; font-weight: 700; color: #fca311; text-transform: uppercase;">{{status}}</td>
+          <td style="padding: 8px 0; color: #718096; font-size: 13px;">Nuevo estado:</td>
+          <td style="padding: 8px 0; font-weight: 700; color: #ff6b6b; text-transform: uppercase;">{{status}}</td>
         </tr>
       </table>
     </div>
 
-    <p style="line-height: 1.7; margin: 0 0 15px;">You can view the full details of your order by logging into your account:</p>
+    <p style="line-height: 1.7; margin: 0 0 20px; color: #4a5568;">Puedes ver el detalle completo de tu pedido iniciando sesión en tu cuenta:</p>
 
-    <div style="text-align: center; margin: 25px 0;">
-      <a href="{{loginUrl}}" style="display: inline-block; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #ffffff; text-decoration: none; padding: 12px 35px; border-radius: 6px; font-size: 15px; font-weight: 600;">View My Orders</a>
+    <div style="text-align: center; margin: 28px 0;">
+      <a href="{{loginUrl}}" style="display: inline-block; background: linear-gradient(135deg, #0a2540 0%, #1a1a2e 100%); color: #ffffff; text-decoration: none; padding: 14px 44px; border-radius: 10px; font-size: 14px; font-weight: 700;">Ver mis pedidos</a>
     </div>
 
-    <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 25px 0;">
+    <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 28px 0;">
 
-    <p style="line-height: 1.7; margin: 0;">
-      Best regards,<br>
-      <strong>The TeVra Team</strong>
+    <p style="line-height: 1.7; margin: 0; color: #4a5568;">
+      Un saludo,<br>
+      <strong>El equipo de TeVra</strong>
     </p>
   </div>
 
   <!-- Footer -->
-  <div style="background-color: #f7fafc; padding: 15px 25px; text-align: center; border-top: 1px solid #e2e8f0;">
-    <p style="margin: 0; font-size: 12px; color: #a0aec0;">© 2026 TeVra LLC. All rights reserved.</p>
-    <p style="margin: 5px 0 0; font-size: 11px; color: #cbd5e0;">This is an automated message. Please do not reply directly to this email.</p>
+  <div style="background-color: #f7fafc; padding: 20px 32px; text-align: center; border-top: 1px solid #e2e8f0;">
+    <p style="margin: 0 0 4px; font-size: 12px; color: #a0aec0;">© 2026 TeVra Marketplace LLC. Todos los derechos reservados.</p>
+    <p style="margin: 0; font-size: 11px; color: #cbd5e0;">Este es un mensaje automático. Por favor no respondas directamente a este correo.</p>
   </div>
+
 </div>
