@@ -5,6 +5,7 @@ import * as bcrypt from 'bcryptjs';
 import { Agent, AgentStatus } from './entities/agent.entity';
 import { AgentApplication, ApplicationStatus } from './entities/agent-application.entity';
 import { User, UserRole } from '../users/entities/user.entity';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class AgentsService {
@@ -15,6 +16,7 @@ export class AgentsService {
     private readonly applicationRepo: Repository<AgentApplication>,
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    private readonly mailService: MailService,
   ) { }
 
   async findAll(tenantId: string, query?: { city?: string; category?: string; status?: string; search?: string }) {
@@ -198,6 +200,9 @@ export class AgentsService {
       });
       await this.agentRepo.save(agent);
     }
+
+    // Send email notification (fire & forget — don't fail the request if mail fails)
+    this.mailService.sendAgentApplicationEmail(app.email, app.fullName, decision, notes).catch(() => { });
 
     return this.findApplication(id);
   }

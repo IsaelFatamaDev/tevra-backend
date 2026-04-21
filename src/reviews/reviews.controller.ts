@@ -21,11 +21,12 @@ export class ReviewsController {
     @Query('agentId') agentId?: string,
     @Query('search') search?: string,
     @Query('rating') rating?: string,
+    @Query('status') status?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
     return this.service.findAll(tenantId, {
-      productId, agentId, search,
+      productId, agentId, search, status,
       rating: rating ? parseInt(rating) : undefined,
       page: page ? parseInt(page) : 1,
       limit: limit ? parseInt(limit) : 20,

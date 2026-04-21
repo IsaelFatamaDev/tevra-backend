@@ -5,7 +5,7 @@ import { MailerService } from '@nestjs-modules/mailer';
 export class MailService {
   private readonly logger = new Logger(MailService.name);
 
-  constructor(private mailerService: MailerService) {}
+  constructor(private mailerService: MailerService) { }
 
   async sendWelcomeEmail(
     email: string,
@@ -63,6 +63,60 @@ export class MailService {
       },
     });
     this.logger.log(`Agent notification sent to ${agentEmail} for order ${orderNumber}`);
+  }
+
+  async sendAgentApplicationEmail(
+    email: string,
+    fullName: string,
+    decision: 'approved' | 'rejected',
+    notes?: string,
+  ) {
+    const firstName = fullName.split(' ')[0];
+    const subject = decision === 'approved'
+      ? '¡Felicitaciones! Tu solicitud como agente TeVra fue aprobada'
+      : 'Actualización sobre tu solicitud como agente TeVra';
+
+    await this.mailerService.sendMail({
+      to: email,
+      subject,
+      template: './agent-application',
+      context: {
+        firstName,
+        fullName,
+        decision,
+        notes: notes || null,
+        loginUrl: 'https://tevra.ddns.net/login',
+        applyUrl: 'https://tevra.ddns.net/agentes',
+      },
+    });
+    this.logger.log(`Agent application ${decision} email sent to ${email}`);
+  }
+
+  async sendAgentApplicationEmail(
+    email: string,
+    fullName: string,
+    decision: 'approved' | 'rejected',
+    notes?: string,
+  ) {
+    const firstName = fullName.split(' ')[0];
+    const subject = decision === 'approved'
+      ? '¡Felicitaciones! Tu solicitud como agente TeVra fue aprobada'
+      : 'Actualización sobre tu solicitud como agente TeVra';
+
+    await this.mailerService.sendMail({
+      to: email,
+      subject,
+      template: './agent-application',
+      context: {
+        firstName,
+        fullName,
+        decision,
+        notes: notes || null,
+        loginUrl: 'https://tevra.ddns.net/login',
+        applyUrl: 'https://tevra.ddns.net/agentes',
+      },
+    });
+    this.logger.log(`Agent application ${decision} email sent to ${email}`);
   }
 
   async sendCampaignEmails(emails: string[], subject: string, content: string) {

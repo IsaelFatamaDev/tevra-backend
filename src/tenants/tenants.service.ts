@@ -32,4 +32,17 @@ export class TenantsService {
     if (dto.settings) tenant.settings = { ...tenant.settings, ...dto.settings };
     return this.repo.save(tenant);
   }
+
+  async getPublicConfig(id: string) {
+    const tenant = await this.repo.findOne({ where: { id } });
+    const settings = tenant?.settings || {};
+    return {
+      whatsapp: settings.whatsapp || '+15102246683',
+      instagramUrl: settings.instagramUrl || 'https://www.instagram.com/tevra.tech/',
+      facebookUrl: settings.facebookUrl || null,
+      tiktokUrl: settings.tiktokUrl || null,
+      supportEmail: settings.supportEmail || null,
+      name: tenant?.name || 'TeVra',
+    };
+  }
 }

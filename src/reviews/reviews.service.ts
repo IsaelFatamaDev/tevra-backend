@@ -15,12 +15,23 @@ export class ReviewsService {
     agentId?: string;
     search?: string;
     rating?: number;
+    status?: string;
     page?: number;
     limit?: number;
   }) {
     const qb = this.repo.createQueryBuilder('r')
       .leftJoinAndSelect('r.reviewer', 'reviewer')
       .where('r.tenantId = :tenantId', { tenantId });
+
+    // By default (public), only show approved reviews. Pass status='all' to see all.
+    const statusFilter = query?.status;
+    if (statusFilter === 'all') {
+      // show every status (admin)
+    } else if (statusFilter && statusFilter !== 'all') {
+      qb.andWhere('r.status = :status', { status: statusFilter });
+    } else {
+      qb.andWhere('r.status = :status', { status: 'approved' });
+    }
 
     if (query?.productId) qb.andWhere('r.productId = :productId', { productId: query.productId });
     if (query?.agentId) qb.andWhere('r.agentId = :agentId', { agentId: query.agentId });
@@ -46,6 +57,7 @@ export class ReviewsService {
         rating: r.rating,
         title: r.title,
         body: r.body,
+        status: r.status,
         isVerifiedPurchase: r.isVerifiedPurchase,
         helpfulCount: r.helpfulCount,
         reviewer: r.reviewer ? {
@@ -66,7 +78,7 @@ export class ReviewsService {
 
   async findByProduct(productId: string) {
     const reviews = await this.repo.find({
-      where: { productId },
+      where: { productId, status: 'approved' as any },
       relations: ['reviewer'],
       order: { createdAt: 'DESC' },
     });
@@ -89,7 +101,7 @@ export class ReviewsService {
 
   async findByAgent(agentId: string) {
     const reviews = await this.repo.find({
-      where: { agentId },
+      where: { agentId, status: 'approved' as any },
       relations: ['reviewer'],
       order: { createdAt: 'DESC' },
     });
@@ -110,7 +122,7 @@ export class ReviewsService {
   }
 
   async create(tenantId: string, reviewerId: string, dto: Partial<Review>) {
-    const review = this.repo.create({ ...dto, tenantId, reviewerId });
+    const review = this.repo.create({ ...dto, tenantId, reviewerId, status: 'pending' as any });
     return this.repo.save(review);
   }
 
@@ -130,9 +142,10 @@ export class ReviewsService {
     const review = await this.repo.findOne({ where: { id, tenantId } });
     if (!review) throw new NotFoundException('Review not found');
     if (action === 'reject') {
-      await this.repo.remove(review);
-      return { deleted: true };
+      (review as any).status = 'rejected';
+      return this.repo.save(review);
     }
+    (review as any).status = 'approved';
     review.isVerifiedPurchase = true;
     return this.repo.save(review);
   }

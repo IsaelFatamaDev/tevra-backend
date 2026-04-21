@@ -35,6 +35,13 @@ export class TenantsController {
     return this.service.findOne(tenantId);
   }
 
+  @Public()
+  @Get('current/public-config')
+  @ApiOperation({ summary: 'Get public tenant config (social media, contact info)' })
+  getPublicConfig(@TenantId() tenantId: string) {
+    return this.service.getPublicConfig(tenantId);
+  }
+
   @Put('current/settings')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'super_admin')

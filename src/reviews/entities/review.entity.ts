@@ -57,6 +57,9 @@ export class Review {
   @Column({ name: 'is_verified_purchase', default: false })
   isVerifiedPurchase: boolean;
 
+  @Column({ length: 20, default: 'pending' })
+  status: 'pending' | 'approved' | 'rejected';
+
   @Column({ name: 'helpful_count', default: 0 })
   helpfulCount: number;
 

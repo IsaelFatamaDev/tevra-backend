@@ -5,11 +5,12 @@ import { AgentApplication } from './entities/agent-application.entity';
 import { User } from '../users/entities/user.entity';
 import { AgentsService } from './agents.service';
 import { AgentsController } from './agents.controller';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Agent, AgentApplication, User])],
+  imports: [TypeOrmModule.forFeature([Agent, AgentApplication, User]), MailModule],
   providers: [AgentsService],
   controllers: [AgentsController],
   exports: [AgentsService],
 })
-export class AgentsModule {}
+export class AgentsModule { }

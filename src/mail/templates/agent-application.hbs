@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Solicitud de Agente TeVra</title>
+</head>
+<body style="margin:0;padding:0;background:#f4e9cd;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4e9cd;padding:40px 16px;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(3,25,38,.10);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background:#031926;padding:32px 40px;text-align:center;">
+              <span style="font-size:26px;font-weight:900;color:#f4e9cd;letter-spacing:-0.5px;">Te<span style="color:#77aca2;">Vra</span></span>
+              <p style="margin:8px 0 0;font-size:12px;color:#77aca2;letter-spacing:2px;text-transform:uppercase;">Red de Agentes</p>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:40px;">
+              {{#if (eq decision 'approved')}}
+                <!-- Approved -->
+                <div style="text-align:center;margin-bottom:28px;">
+                  <div style="display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;background:#d1fae5;border-radius:50%;margin-bottom:16px;">
+                    <span style="font-size:32px;">✅</span>
+                  </div>
+                  <h1 style="margin:0;font-size:22px;font-weight:800;color:#031926;">¡Bienvenido al equipo!</h1>
+                  <p style="margin:8px 0 0;color:#468189;font-size:15px;">Tu solicitud fue <strong style="color:#059669;">aprobada</strong></p>
+                </div>
+                <p style="color:#031926;font-size:15px;line-height:1.6;margin:0 0 20px;">Hola <strong>{{firstName}}</strong>, nos alegra mucho darte la bienvenida como agente oficial de TeVra.</p>
+                <p style="color:#468189;font-size:14px;line-height:1.6;margin:0 0 28px;">
+                  Ya tienes acceso a tu panel de agente donde podrás gestionar tus clientes, ver tus comisiones y compartir tu enlace de referidos.
+                </p>
+                <div style="text-align:center;margin-bottom:28px;">
+                  <a href="{{loginUrl}}" style="display:inline-block;background:#031926;color:#f4e9cd;font-weight:700;font-size:14px;padding:14px 32px;border-radius:10px;text-decoration:none;">
+                    Iniciar sesión →
+                  </a>
+                </div>
+
+              {{else}}
+                <!-- Rejected -->
+                <div style="text-align:center;margin-bottom:28px;">
+                  <div style="display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;background:#fee2e2;border-radius:50%;margin-bottom:16px;">
+                    <span style="font-size:32px;">📋</span>
+                  </div>
+                  <h1 style="margin:0;font-size:22px;font-weight:800;color:#031926;">Actualización de tu solicitud</h1>
+                  <p style="margin:8px 0 0;color:#468189;font-size:15px;">No pudimos aprobar tu solicitud en este momento</p>
+                </div>
+                <p style="color:#031926;font-size:15px;line-height:1.6;margin:0 0 16px;">Hola <strong>{{firstName}}</strong>, revisamos tu solicitud para unirte a la red de agentes de TeVra.</p>
+                {{#if notes}}
+                  <div style="background:#fff7ed;border-left:4px solid #f97316;padding:16px 20px;border-radius:0 8px 8px 0;margin-bottom:24px;">
+                    <p style="margin:0 0 6px;font-size:12px;font-weight:700;color:#ea580c;text-transform:uppercase;letter-spacing:1px;">Motivo</p>
+                    <p style="margin:0;color:#431407;font-size:14px;line-height:1.6;">{{notes}}</p>
+                  </div>
+                {{/if}}
+                <p style="color:#468189;font-size:14px;line-height:1.6;margin:0 0 28px;">
+                  Si crees que hay un error o deseas más información, no dudes en contactarnos. También puedes volver a aplicar cuando hayas resuelto los puntos mencionados.
+                </p>
+                <div style="text-align:center;margin-bottom:28px;">
+                  <a href="{{applyUrl}}" style="display:inline-block;background:#031926;color:#f4e9cd;font-weight:700;font-size:14px;padding:14px 32px;border-radius:10px;text-decoration:none;">
+                    Ver programa de agentes →
+                  </a>
+                </div>
+              {{/if}}
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background:#031926;padding:24px 40px;text-align:center;">
+              <p style="margin:0;font-size:12px;color:#77aca2;">© 2026 TeVra · Todos los derechos reservados</p>
+              <p style="margin:4px 0 0;font-size:11px;color:#468189;">Este correo fue enviado a {{fullName}}</p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
