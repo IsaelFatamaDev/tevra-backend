@@ -121,19 +121,32 @@ export class ProductsService {
       .replace(/^-|-$/g, '');
   }
 
-  async createProduct(tenantId: string, dto: Partial<Product>) {
-    if (dto.name && !dto.slug) {
-      dto.slug = this.generateSlug(dto.name) + '-' + Date.now();
+  private sanitizeNumericFields(dto: Partial<Product>): Partial<Product> {
+    const sanitized = { ...dto };
+    if (sanitized.priceRefLocal === ('' as any) || sanitized.priceRefLocal === null) {
+      sanitized.priceRefLocal = null;
     }
-    const product = this.productRepo.create({ ...dto, tenantId });
+    if (sanitized.marginPct === ('' as any) || sanitized.marginPct === null) {
+      sanitized.marginPct = null;
+    }
+    return sanitized;
+  }
+
+  async createProduct(tenantId: string, dto: Partial<Product>) {
+    const sanitized = this.sanitizeNumericFields(dto);
+    if (sanitized.name && !sanitized.slug) {
+      sanitized.slug = this.generateSlug(sanitized.name) + '-' + Date.now();
+    }
+    const product = this.productRepo.create({ ...sanitized, tenantId });
     return this.productRepo.save(product);
   }
 
   async updateProduct(id: string, dto: Partial<Product>) {
-    if (dto.name && !dto.slug) {
-      dto.slug = this.generateSlug(dto.name) + '-' + Date.now();
+    const sanitized = this.sanitizeNumericFields(dto);
+    if (sanitized.name && !sanitized.slug) {
+      sanitized.slug = this.generateSlug(sanitized.name) + '-' + Date.now();
     }
-    await this.productRepo.update(id, { ...dto, updatedAt: new Date() });
+    await this.productRepo.update(id, { ...sanitized, updatedAt: new Date() });
     return this.findProduct(id);
   }
 
