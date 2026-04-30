@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { join } from 'path';
 import { MailService } from './mail.service';
 import { MailListener } from './mail.listener';
+import { ContactController } from './contact.controller';
 
 @Global()
 @Module({
@@ -36,5 +37,6 @@ import { MailListener } from './mail.listener';
   ],
   providers: [MailService, MailListener],
   exports: [MailService, MailerModule],
+  controllers: [ContactController],
 })
 export class MailModule { }

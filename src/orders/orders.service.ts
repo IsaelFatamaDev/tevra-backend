@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order, OrderStatus } from './entities/order.entity';
 import { OrderItem } from './entities/order-item.entity';
+import { Commission, CommissionStatus } from '../commissions/entities/commission.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { OrderStatusUpdatedEvent } from '../common/events/order-status-updated.event';
 
@@ -13,6 +14,8 @@ export class OrdersService {
     private readonly orderRepo: Repository<Order>,
     @InjectRepository(OrderItem)
     private readonly itemRepo: Repository<OrderItem>,
+    @InjectRepository(Commission)
+    private readonly commissionRepo: Repository<Commission>,
     private readonly eventEmitter: EventEmitter2,
   ) { }
 
@@ -158,14 +161,14 @@ export class OrdersService {
     notes?: string;
     productLink?: string;
   }) {
-    const orderNumber = `TV-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${String(Math.floor(Math.random() * 999)).padStart(3, '0')}`;
+    const orderNumber = `T-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${String(Math.floor(Math.random() * 999)).padStart(3, '0')}`;
 
     const subtotal = dto.items.reduce((acc, item) => acc + item.unitPrice * item.quantity, 0);
     const shippingCost = subtotal > 500 ? 20 : 15;
-    const commissionRate = 0.12;
-    const tevraCommission = Number((subtotal * commissionRate).toFixed(2));
-    const agentCommission = dto.agentId ? Number((subtotal * commissionRate).toFixed(2)) : 0;
-    const total = Number((subtotal + shippingCost + tevraCommission + agentCommission).toFixed(2));
+    // Commissions are extracted from the margin already baked into prices — never added on top
+    const tevraCommission = Number((subtotal * 0.15).toFixed(2));
+    const agentCommission = dto.agentId ? Number((subtotal * 0.12).toFixed(2)) : 0;
+    const total = Number((subtotal + shippingCost).toFixed(2));
 
     const order = this.orderRepo.create({
       tenantId,
@@ -195,6 +198,18 @@ export class OrdersService {
       variantInfo: item.variantInfo || {},
     }));
     await this.itemRepo.save(items);
+
+    if (dto.agentId && agentCommission > 0) {
+      const commission = this.commissionRepo.create({
+        tenantId,
+        agentId: dto.agentId,
+        orderId: saved.id,
+        amount: agentCommission,
+        rate: 12.00,
+        status: CommissionStatus.PENDING,
+      });
+      await this.commissionRepo.save(commission);
+    }
 
     return this.findOne(saved.id);
   }

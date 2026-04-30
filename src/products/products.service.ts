@@ -80,6 +80,7 @@ export class ProductsService {
         name: p.name,
         slug: p.slug,
         description: p.description,
+        descriptionEn: p.descriptionEn,
         priceUsd: p.priceUsd,
         priceRefLocal: p.priceRefLocal,
         images: p.images,

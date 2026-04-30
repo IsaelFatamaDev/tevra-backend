@@ -1,11 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class MailService {
   private readonly logger = new Logger(MailService.name);
 
-  constructor(private mailerService: MailerService) { }
+  constructor(
+    private mailerService: MailerService,
+    private configService: ConfigService,
+  ) { }
 
   async sendWelcomeEmail(
     email: string,
@@ -105,5 +109,17 @@ export class MailService {
     );
     await Promise.all(promises);
     this.logger.log(`Campaign emails sent to ${emails.length} recipients`);
+  }
+
+  async sendContactFormEmail(name: string, senderEmail: string, subject: string, message: string) {
+    const supportEmail = this.configService.get<string>('SUPPORT_EMAIL', this.configService.get<string>('MAIL_USER', 'tevrallc@gmail.com'));
+    await this.mailerService.sendMail({
+      to: supportEmail,
+      replyTo: senderEmail,
+      subject: `[Contacto] ${subject}`,
+      template: './contact',
+      context: { name, senderEmail, subject, message },
+    });
+    this.logger.log(`Contact form email from ${senderEmail} sent to ${supportEmail}`);
   }
 }

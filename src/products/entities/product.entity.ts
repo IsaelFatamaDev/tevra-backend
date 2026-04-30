@@ -51,6 +51,9 @@ export class Product {
   @Column({ type: 'text', nullable: true })
   description: string;
 
+  @Column({ name: 'description_en', type: 'text', nullable: true })
+  descriptionEn: string;
+
   @Column({ name: 'price_usd', type: 'decimal', precision: 10, scale: 2 })
   priceUsd: number;
 
