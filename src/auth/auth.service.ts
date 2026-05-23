@@ -9,6 +9,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { UserRegisteredEvent } from '../common/events/user-registered.event';
 import { User, UserRole } from '../users/entities/user.entity';
 import { Agent, AgentStatus } from '../agents/entities/agent.entity';
+import { Tenant } from '../tenants/entities/tenant.entity';
 
 @Injectable()
 export class AuthService {
@@ -17,6 +18,8 @@ export class AuthService {
     private readonly usersRepo: Repository<User>,
     @InjectRepository(Agent)
     private readonly agentsRepo: Repository<Agent>,
+    @InjectRepository(Tenant)
+    private readonly tenantsRepo: Repository<Tenant>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly eventEmitter: EventEmitter2,
@@ -195,6 +198,17 @@ export class AuthService {
     await this.usersRepo.save(user);
 
     return { message: 'Your account has been verified successfully. You can now log in.' };
+  }
+
+  // Resolves the frontend URL from tenant settings (configured by admin),
+  // falling back to the .env variable, then to localhost.
+  async getFrontendUrl(tenantId: string): Promise<string> {
+    try {
+      const tenant = await this.tenantsRepo.findOne({ where: { id: tenantId } });
+      const configured = tenant?.settings?.frontendUrl;
+      if (configured && configured.startsWith('http')) return configured.replace(/\/$/, '');
+    } catch { /* ignore */ }
+    return this.configService.get('FRONTEND_URL') || 'http://localhost:5173';
   }
 
   private async generateTokens(user: User) {

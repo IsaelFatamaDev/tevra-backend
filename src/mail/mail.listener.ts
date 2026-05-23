@@ -20,12 +20,13 @@ export class MailListener {
   async handleUserRegisteredEvent(event: UserRegisteredEvent) {
     this.logger.log(`Handling user.registered for: ${event.email}`);
 
-    // 1. Send welcome email
+    // 1. Send welcome email with dynamic frontendUrl from tenant settings
     await this.mailService.sendWelcomeEmail(
       event.email,
       event.firstName,
       event.password,
       event.verificationToken,
+      event.tenantId,
     );
 
     // 2. Send WhatsApp welcome (if phone provided)

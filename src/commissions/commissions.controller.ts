@@ -41,10 +41,18 @@ export class CommissionsController {
     return this.service.create(tenantId, dto);
   }
 
+  @Patch(':id/approve')
+  @UseGuards(RolesGuard)
+  @Roles('admin', 'super_admin')
+  @ApiOperation({ summary: 'Approve a commission (admin)' })
+  markApproved(@Param('id') id: string) {
+    return this.service.markApproved(id);
+  }
+
   @Patch(':id/paid')
   @UseGuards(RolesGuard)
   @Roles('admin', 'super_admin')
-  @ApiOperation({ summary: 'Mark commission as paid' })
+  @ApiOperation({ summary: 'Mark commission as paid (admin)' })
   markPaid(@Param('id') id: string) {
     return this.service.markPaid(id);
   }

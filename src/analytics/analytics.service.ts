@@ -117,36 +117,49 @@ export class AnalyticsService {
       .getRawMany();
   }
 
+  // BUG-19 FIX: Use COALESCE across multiple JSON fields (city, district)
+  // so orders without a 'city' key still appear in the report.
   async getOrdersByCity(tenantId: string, period?: string) {
     const qb = this.orderRepo
       .createQueryBuilder('o')
-      .select("o.shipping_address->>'city'", 'city')
-      .addSelect("o.shipping_address->>'country'", 'country')
+      .select(
+        `COALESCE(o.shipping_address->>'city', o.shipping_address->>'district', o.shipping_address->>'province', 'Sin ciudad')`,
+        'city',
+      )
+      .addSelect("COALESCE(o.shipping_address->>'country', 'N/A')", 'country')
       .addSelect('COUNT(*)', 'totalOrders')
       .addSelect('COALESCE(SUM(o.total), 0)', 'totalRevenue')
       .where('o.tenant_id = :tenantId', { tenantId })
-      .andWhere("o.shipping_address->>'city' IS NOT NULL");
+      .andWhere('o.shipping_address IS NOT NULL')
+      .andWhere("o.status != 'cancelled'");
     const dateFrom = this.getDateFrom(period);
     if (dateFrom) qb.andWhere('o.created_at >= :dateFrom', { dateFrom });
-    return qb.groupBy("o.shipping_address->>'city'")
-      .addGroupBy("o.shipping_address->>'country'")
+    return qb
+      .groupBy(`COALESCE(o.shipping_address->>'city', o.shipping_address->>'district', o.shipping_address->>'province', 'Sin ciudad')`)
+      .addGroupBy(`COALESCE(o.shipping_address->>'country', 'N/A')`)
       .orderBy('"totalOrders"', 'DESC')
       .getRawMany();
   }
 
+  // BUG-18 FIX: Use COALESCE so orders without a category (manual orders
+  // created by agent without catalog product) still appear grouped.
+  // Changed innerJoin for products to leftJoin so product_id=null orders
+  // are included in the count via the 'Sin categoria' group.
   async getOrdersByCategory(tenantId: string, period?: string) {
     const qb = this.orderRepo
       .createQueryBuilder('o')
-      .select('c.name', 'category')
+      .select(`COALESCE(c.name, 'Sin categoría')`, 'category')
       .addSelect('COUNT(DISTINCT o.id)', 'totalOrders')
-      .addSelect('COALESCE(SUM(oi.subtotal), 0)', 'totalRevenue')
+      .addSelect('COALESCE(SUM(oi.total_price), 0)', 'totalRevenue')
       .innerJoin('order_items', 'oi', 'oi.order_id = o.id')
-      .innerJoin('products', 'p', 'p.id = oi.product_id')
+      .leftJoin('products', 'p', 'p.id = oi.product_id')
       .leftJoin('categories', 'c', 'c.id = p.category_id')
-      .where('o.tenant_id = :tenantId', { tenantId });
+      .where('o.tenant_id = :tenantId', { tenantId })
+      .andWhere("o.status != 'cancelled'");
     const dateFrom = this.getDateFrom(period);
     if (dateFrom) qb.andWhere('o.created_at >= :dateFrom', { dateFrom });
-    return qb.groupBy('c.name')
+    return qb
+      .groupBy(`COALESCE(c.name, 'Sin categoría')`)
       .orderBy('"totalRevenue"', 'DESC')
       .getRawMany();
   }

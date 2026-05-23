@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Headers, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Get, Body, Headers, Query, UseGuards, Request, Redirect } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto, RefreshTokenDto } from './dto/auth.dto';
@@ -34,9 +34,22 @@ export class AuthController {
   }
 
   @Get('verify-email')
-  @ApiOperation({ summary: 'Verify user email with token' })
-  async verifyEmail(@Query('token') token: string) {
-    return this.authService.verifyEmail(token);
+  @ApiOperation({ summary: 'Verify user email with token and redirect to frontend URL (configured in Admin > Settings)' })
+  @Redirect()
+  async verifyEmail(
+    @Query('token') token: string,
+    @Headers('x-tenant-id') tenantId: string,
+  ) {
+    try {
+      await this.authService.verifyEmail(token);
+      // Resolve URL from DB (set by admin) — no hardcoded .env needed
+      const frontendUrl = await this.authService.getFrontendUrl(tenantId);
+      return { url: `${frontendUrl}/verificado?status=success` };
+    } catch {
+      const frontendUrl = await this.authService.getFrontendUrl(tenantId)
+        .catch(() => process.env.FRONTEND_URL || 'http://localhost:5173');
+      return { url: `${frontendUrl}/verificado?status=error` };
+    }
   }
 
   @Post('login')

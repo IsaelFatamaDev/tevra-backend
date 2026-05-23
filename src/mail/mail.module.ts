@@ -2,10 +2,12 @@ import { Global, Module } from '@nestjs/common';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/adapters/handlebars.adapter';
 import { ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
 import { MailService } from './mail.service';
 import { MailListener } from './mail.listener';
 import { ContactController } from './contact.controller';
+import { Tenant } from '../tenants/entities/tenant.entity';
 
 @Global()
 @Module({
@@ -34,6 +36,7 @@ import { ContactController } from './contact.controller';
       }),
       inject: [ConfigService],
     }),
+    TypeOrmModule.forFeature([Tenant]),
   ],
   providers: [MailService, MailListener],
   exports: [MailService, MailerModule],

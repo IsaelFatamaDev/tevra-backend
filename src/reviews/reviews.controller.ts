@@ -47,6 +47,14 @@ export class ReviewsController {
     return this.service.findByAgent(agentId);
   }
 
+  @Get('agent/me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get reviews received by the authenticated agent' })
+  findMyAgentReviews(@Request() req: any) {
+    return this.service.findByAgentUserId(req.user.id);
+  }
+
   @Post()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()

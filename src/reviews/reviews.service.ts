@@ -2,12 +2,15 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Review } from './entities/review.entity';
+import { Agent } from '../agents/entities/agent.entity';
 
 @Injectable()
 export class ReviewsService {
   constructor(
     @InjectRepository(Review)
     private readonly repo: Repository<Review>,
+    @InjectRepository(Agent)
+    private readonly agentRepo: Repository<Agent>,
   ) { }
 
   async findAll(tenantId: string, query?: {
@@ -124,6 +127,12 @@ export class ReviewsService {
   async create(tenantId: string, reviewerId: string, dto: Partial<Review>) {
     const review = this.repo.create({ ...dto, tenantId, reviewerId, status: 'pending' as any });
     return this.repo.save(review);
+  }
+
+  async findByAgentUserId(userId: string) {
+    const agent = await this.agentRepo.findOne({ where: { userId } });
+    if (!agent) return { reviews: [], avgRating: 0, total: 0 };
+    return this.findByAgent(agent.id);
   }
 
   async markHelpful(id: string) {

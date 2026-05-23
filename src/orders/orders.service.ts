@@ -92,12 +92,41 @@ export class OrdersService {
     return order;
   }
 
+  // BUG-05 FIX: Search by orderNumber OR by full/partial UUID so tracking
+  // from the public page works regardless of what format the customer types.
   async findByOrderNumber(orderNumber: string) {
-    const order = await this.orderRepo.findOne({
-      where: { orderNumber },
+    const normalized = orderNumber.trim().toUpperCase();
+
+    // Try exact match on orderNumber first
+    let order = await this.orderRepo.findOne({
+      where: { orderNumber: normalized },
       relations: ['items', 'customer', 'agent', 'agent.user'],
     });
-    if (!order) throw new NotFoundException('Order not found');
+
+    // Fallback: try case-insensitive and original case
+    if (!order) {
+      order = await this.orderRepo.findOne({
+        where: { orderNumber: orderNumber.trim() },
+        relations: ['items', 'customer', 'agent', 'agent.user'],
+      });
+    }
+
+    // Fallback: try matching by UUID (id starts with)
+    if (!order) {
+      order = await this.orderRepo
+        .createQueryBuilder('o')
+        .leftJoinAndSelect('o.items', 'items')
+        .leftJoinAndSelect('o.customer', 'customer')
+        .leftJoinAndSelect('o.agent', 'agent')
+        .leftJoinAndSelect('agent.user', 'agentUser')
+        .where('LOWER(o.id::text) LIKE :id OR LOWER(o.orderNumber) LIKE :num', {
+          id: `${orderNumber.toLowerCase().trim()}%`,
+          num: `%${orderNumber.toLowerCase().trim()}%`,
+        })
+        .getOne();
+    }
+
+    if (!order) throw new NotFoundException('Order not found. Please check your tracking number.');
     return order;
   }
 
@@ -141,7 +170,9 @@ export class OrdersService {
         firstName: o.customer.firstName,
         lastName: o.customer.lastName,
         email: o.customer.email,
+        // BUG-07 FIX: include whatsapp so agent can contact the correct number
         phone: o.customer.phone,
+        whatsapp: o.customer.whatsapp,
       } : null,
       agent: o.agent ? {
         id: o.agent.id,
