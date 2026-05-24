@@ -16,6 +16,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
       ? exception.getResponse()
       : 'Internal server error';
 
+    // Log the error so it shows up in Dokploy/VPS console
+    if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
+      console.error(`[HttpExceptionFilter] 500 Error on ${request.method} ${request.url}:`, exception);
+    }
+
     response.status(status).json({
       success: false,
       statusCode: status,
