@@ -23,7 +23,7 @@ export class InvoicesService {
       tenantId,
       invoiceNumber,
       totalAmount,
-    });
+    } as any);
 
     return this.invoiceRepo.save(invoice);
   }

@@ -99,7 +99,7 @@ export class WhatsAppService {
    * @param phone Phone number with country code (e.g. "5511999999999")
    * @param text Message text
    */
-  async sendText(phone: string, text: string): Promise<any> {
+  async sendText(phone: string, text: string, tenantId?: string): Promise<any> {
     try {
       // Normalize phone: remove spaces, dashes, plus, etc.
       const normalizedPhone = phone.replace(/[\s\-\+\(\)]/g, '');
@@ -115,6 +115,20 @@ export class WhatsAppService {
         ),
       );
       this.logger.log(`WhatsApp message sent to ${normalizedPhone}`);
+
+      if (tenantId) {
+        const savedMsg = await this.messageRepo.save({
+          tenantId,
+          phoneNumber: normalizedPhone,
+          text,
+          isFromAdmin: true,
+          messageId: data?.key?.id || `local-${Date.now()}`,
+          isRead: true,
+        });
+        // Broadcast to admin frontend so the sender's UI updates
+        this.chatGateway.emitMessageToAdmins(tenantId, savedMsg);
+      }
+
       return data;
     } catch (error) {
       this.logger.warn(`Failed to send WhatsApp to ${phone}: ${error.message}`);
