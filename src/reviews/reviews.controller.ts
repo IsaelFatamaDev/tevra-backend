@@ -40,19 +40,19 @@ export class ReviewsController {
     return this.service.findByProduct(productId);
   }
 
-  @Public()
-  @Get('agent/:agentId')
-  @ApiOperation({ summary: 'Get reviews for an agent' })
-  findByAgent(@Param('agentId') agentId: string) {
-    return this.service.findByAgent(agentId);
-  }
-
   @Get('agent/me')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get reviews received by the authenticated agent' })
   findMyAgentReviews(@Request() req: any) {
     return this.service.findByAgentUserId(req.user.id);
+  }
+
+  @Public()
+  @Get('agent/:agentId')
+  @ApiOperation({ summary: 'Get reviews for an agent' })
+  findByAgent(@Param('agentId') agentId: string) {
+    return this.service.findByAgent(agentId);
   }
 
   @Post()

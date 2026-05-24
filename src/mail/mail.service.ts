@@ -37,8 +37,8 @@ export class MailService {
     tenantId?: string,
   ) {
     const baseUrl = await this.resolveFrontendUrl(tenantId);
-    const apiBase = this.configService.get('API_BASE_URL') || baseUrl.replace('5173', '3001/api/v1');
-    const verificationUrl = `${apiBase}/auth/verify-email?token=${verificationToken}`;
+    // Point directly to the React frontend route which handles the API call under the hood
+    const verificationUrl = `${baseUrl}/verificado?token=${verificationToken}`;
     const loginUrl = `${baseUrl}/login`;
 
     await this.mailerService.sendMail({

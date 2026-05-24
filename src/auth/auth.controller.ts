@@ -34,22 +34,12 @@ export class AuthController {
   }
 
   @Get('verify-email')
-  @ApiOperation({ summary: 'Verify user email with token and redirect to frontend URL (configured in Admin > Settings)' })
-  @Redirect()
+  @ApiOperation({ summary: 'Verify user email with token (called from frontend)' })
   async verifyEmail(
     @Query('token') token: string,
-    @Headers('x-tenant-id') tenantId: string,
   ) {
-    try {
-      await this.authService.verifyEmail(token);
-      // Resolve URL from DB (set by admin) — no hardcoded .env needed
-      const frontendUrl = await this.authService.getFrontendUrl(tenantId);
-      return { url: `${frontendUrl}/verificado?status=success` };
-    } catch {
-      const frontendUrl = await this.authService.getFrontendUrl(tenantId)
-        .catch(() => process.env.FRONTEND_URL || 'http://localhost:5173');
-      return { url: `${frontendUrl}/verificado?status=error` };
-    }
+    await this.authService.verifyEmail(token);
+    return { success: true };
   }
 
   @Post('login')
