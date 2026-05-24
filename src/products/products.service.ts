@@ -216,13 +216,18 @@ export class ProductsService {
     return cat;
   }
 
-  async createCategory(tenantId: string, dto: Partial<Category>) {
-    const cat = this.categoryRepo.create({ ...dto, tenantId });
+  async createCategory(tenantId: string, dto: any) {
+    const { icon, ...rest } = dto;
+    const cat = this.categoryRepo.create({ ...rest, imageUrl: icon, tenantId });
     return this.categoryRepo.save(cat);
   }
 
-  async updateCategory(id: string, dto: Partial<Category>) {
-    await this.categoryRepo.update(id, { ...dto, updatedAt: new Date() });
+  async updateCategory(id: string, dto: any) {
+    const { icon, ...rest } = dto;
+    const updateData = { ...rest, updatedAt: new Date() };
+    if (icon !== undefined) updateData.imageUrl = icon;
+    
+    await this.categoryRepo.update(id, updateData);
     return this.findCategory(id);
   }
 

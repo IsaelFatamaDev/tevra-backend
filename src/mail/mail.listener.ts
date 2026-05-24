@@ -137,4 +137,16 @@ export class MailListener {
       }
     }
   }
+
+  /* ────────────── COMMISSION PAID ────────────── */
+  @OnEvent('commission.paid')
+  async handleCommissionPaidEvent(event: any) {
+    this.logger.log(`Handling commission.paid for: ${event.agentEmail}`);
+
+    await this.mailService.sendGenericEmail(
+      event.agentEmail,
+      '¡Tu comisión ha sido pagada! - TeVra',
+      `Hola ${event.agentName},<br><br>Nos complace informarte que hemos realizado el pago de tu comisión por <strong>$${event.amount} USD</strong> correspondiente al pedido <strong>${event.orderNumber || 'N/A'}</strong>.<br><br>Gracias por ser parte del equipo TeVra.<br><br>Saludos,<br>El equipo de TeVra`
+    );
+  }
 }

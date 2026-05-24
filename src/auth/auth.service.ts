@@ -98,7 +98,7 @@ export class AuthService {
       passwordHash,
       role: UserRole.CUSTOMER,
       isActive: true,
-      isVerified: false,
+      isVerified: true, // Bypass email verification requirement
       verificationToken,
     });
     const saved = await this.usersRepo.save(user);
@@ -116,9 +116,8 @@ export class AuthService {
       ),
     );
 
-    return {
-      message: 'Account created successfully. Please check your email to verify your account before logging in.',
-    };
+    // Auto-login after registration
+    return this.generateTokens(saved as User);
   }
 
   async login(email: string, password: string, tenantId: string) {

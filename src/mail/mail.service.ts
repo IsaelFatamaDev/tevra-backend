@@ -147,4 +147,13 @@ export class MailService {
     });
     this.logger.log(`Contact form email from ${senderEmail} sent to ${supportEmail}`);
   }
+
+  async sendGenericEmail(email: string, subject: string, htmlContent: string) {
+    await this.mailerService.sendMail({
+      to: email,
+      subject,
+      html: htmlContent, // Using direct html instead of template for generic emails
+    });
+    this.logger.log(`Generic email sent to ${email}`);
+  }
 }

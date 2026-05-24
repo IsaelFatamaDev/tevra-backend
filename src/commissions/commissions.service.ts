@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Commission, CommissionStatus } from './entities/commission.entity';
 import { Agent } from '../agents/entities/agent.entity';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { CommissionPaidEvent } from '../common/events/commission-paid.event';
 
 @Injectable()
 export class CommissionsService {
@@ -11,6 +13,7 @@ export class CommissionsService {
     private readonly repo: Repository<Commission>,
     @InjectRepository(Agent)
     private readonly agentRepo: Repository<Agent>,
+    private readonly eventEmitter: EventEmitter2,
   ) { }
 
   findAll(tenantId: string, query?: { agentId?: string; status?: string }) {
@@ -52,7 +55,22 @@ export class CommissionsService {
 
   async markPaid(id: string) {
     await this.repo.update(id, { status: CommissionStatus.PAID, paidAt: new Date(), updatedAt: new Date() });
-    return this.repo.findOne({ where: { id } });
+    const commission = await this.repo.findOne({ where: { id }, relations: ['order'] });
+    if (commission) {
+      const agent = await this.agentRepo.findOne({ where: { id: commission.agentId }, relations: ['user'] });
+      if (agent && agent.user) {
+        this.eventEmitter.emit(
+          'commission.paid',
+          new CommissionPaidEvent(
+            agent.user.email,
+            agent.user.firstName,
+            Number(commission.amount),
+            commission.order?.orderNumber
+          )
+        );
+      }
+    }
+    return commission;
   }
 
   // BUG-08 FIX: More robust lookup — also checks commission.tenantId for
