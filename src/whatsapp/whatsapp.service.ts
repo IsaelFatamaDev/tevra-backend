@@ -160,11 +160,20 @@ export class WhatsAppService {
    * Handle incoming messages from Evolution API Webhook
    */
   async handleWebhook(payload: any, tenantId: string): Promise<void> {
-    if (payload.event === 'messages.upsert') {
-      const messages = payload.data?.messages || [];
+    const eventName = payload.event?.toLowerCase();
+    if (eventName === 'messages.upsert' || eventName === 'messages.update') {
+      let messages = [];
+      if (Array.isArray(payload.data?.messages)) {
+        messages = payload.data.messages; // v1 format
+      } else if (payload.data?.key) {
+        messages = [payload.data]; // v2 single message format
+      } else if (Array.isArray(payload.data)) {
+        messages = payload.data; // v2 array format
+      }
+
       for (const msg of messages) {
         // Skip messages that we sent ourselves (fromMe = true)
-        if (msg.key.fromMe) continue;
+        if (msg.key?.fromMe) continue;
 
         const senderPhone = msg.key.remoteJid?.split('@')[0];
         if (!senderPhone || senderPhone.includes('status')) continue;
