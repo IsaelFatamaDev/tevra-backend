@@ -18,12 +18,11 @@ export class InvoicesService {
 
     const totalAmount = dto.items.reduce((acc, item) => acc + item.subtotal, 0);
 
-    const invoice = this.invoiceRepo.create({
-      ...dto,
-      tenantId,
-      invoiceNumber,
-      totalAmount,
-    } as any);
+    const invoice = new Invoice();
+    Object.assign(invoice, dto);
+    invoice.tenantId = tenantId;
+    invoice.invoiceNumber = invoiceNumber;
+    invoice.totalAmount = totalAmount;
 
     return this.invoiceRepo.save(invoice);
   }
