@@ -135,6 +135,7 @@ export class ProductsService {
 
   async createProduct(tenantId: string, dto: Partial<Product>) {
     const sanitized = this.sanitizeNumericFields(dto);
+    delete (sanitized as any).providerCostUsd;
     if (sanitized.name && !sanitized.slug) {
       sanitized.slug = this.generateSlug(sanitized.name) + '-' + Date.now();
     }
@@ -144,6 +145,7 @@ export class ProductsService {
 
   async updateProduct(id: string, dto: Partial<Product>) {
     const sanitized = this.sanitizeNumericFields(dto);
+    delete (sanitized as any).providerCostUsd;
     if (sanitized.name && !sanitized.slug) {
       sanitized.slug = this.generateSlug(sanitized.name) + '-' + Date.now();
     }
