@@ -221,6 +221,12 @@ export class ProductsService {
     if (rest.name && !rest.slug) {
       rest.slug = this.generateSlug(rest.name) + '-' + Date.now();
     }
+    if (rest.slug) {
+      const existing = await this.categoryRepo.findOne({ where: { slug: rest.slug, tenantId } });
+      if (existing) {
+        rest.slug = rest.slug + '-' + Date.now();
+      }
+    }
     const cat = this.categoryRepo.create({ ...rest, imageUrl: icon, tenantId });
     return this.categoryRepo.save(cat);
   }
@@ -229,8 +235,20 @@ export class ProductsService {
     const { icon, ...rest } = dto;
     const updateData = { ...rest, updatedAt: new Date() };
     if (icon !== undefined) updateData.imageUrl = icon;
-    if (updateData.name && !updateData.slug) {
-      updateData.slug = this.generateSlug(updateData.name) + '-' + Date.now();
+    
+    const cat = await this.categoryRepo.findOne({ where: { id } });
+    if (cat) {
+      if (updateData.name && !updateData.slug) {
+        updateData.slug = this.generateSlug(updateData.name) + '-' + Date.now();
+      }
+      if (updateData.slug) {
+        const existing = await this.categoryRepo.findOne({ 
+          where: { slug: updateData.slug, tenantId: cat.tenantId } 
+        });
+        if (existing && existing.id !== id) {
+          updateData.slug = updateData.slug + '-' + Date.now();
+        }
+      }
     }
     
     await this.categoryRepo.update(id, updateData);
