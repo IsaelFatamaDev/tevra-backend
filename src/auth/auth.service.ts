@@ -68,13 +68,13 @@ export class AuthService {
     whatsapp?: string;
     tenantId: string;
   }) {
-    // Validate email uniqueness
+    
     const emailExists = await this.usersRepo.findOne({
       where: { email: dto.email, tenantId: dto.tenantId },
     });
     if (emailExists) throw new ConflictException('El email ya está registrado');
 
-    // Validate phone uniqueness
+    
     if (dto.phone) {
       const phoneExists = await this.usersRepo.findOne({
         where: { phone: dto.phone, tenantId: dto.tenantId },
@@ -82,7 +82,7 @@ export class AuthService {
       if (phoneExists) throw new ConflictException('El número de teléfono ya está registrado');
     }
 
-    // Validate whatsapp uniqueness
+    
     if (dto.whatsapp) {
       const whatsappExists = await this.usersRepo.findOne({
         where: { whatsapp: dto.whatsapp, tenantId: dto.tenantId },
@@ -98,12 +98,12 @@ export class AuthService {
       passwordHash,
       role: UserRole.CUSTOMER,
       isActive: true,
-      isVerified: true, // Bypass email verification requirement
+      isVerified: true, 
       verificationToken,
     });
     const saved = await this.usersRepo.save(user);
 
-    // Emit event for email notification (includes plain password for first welcome email only)
+    
     this.eventEmitter.emit(
       'user.registered',
       new UserRegisteredEvent(
@@ -116,7 +116,7 @@ export class AuthService {
       ),
     );
 
-    // Auto-login after registration
+    
     return this.generateTokens(saved as User);
   }
 
@@ -131,7 +131,7 @@ export class AuthService {
     const valid = await bcrypt.compare(password, user.passwordHash);
     if (!valid) throw new UnauthorizedException('Invalid credentials');
 
-    // Block unverified customers from logging in
+    
     if (user.role === UserRole.CUSTOMER && !user.isVerified) {
       throw new UnauthorizedException('Your account has not been verified. Please check your email and click the verification link.');
     }
@@ -199,8 +199,8 @@ export class AuthService {
     return { message: 'Your account has been verified successfully. You can now log in.' };
   }
 
-  // Resolves the frontend URL from tenant settings (configured by admin),
-  // falling back to the .env variable, then to localhost.
+  
+  
   async getFrontendUrl(tenantId: string): Promise<string> {
     try {
       const tenant = await this.tenantsRepo.findOne({ where: { id: tenantId } });

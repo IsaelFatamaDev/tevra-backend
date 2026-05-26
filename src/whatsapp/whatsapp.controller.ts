@@ -52,7 +52,7 @@ export class WhatsAppController {
     return { status: 'ok' };
   }
 
-  // ---- CHAT INBOX ENDPOINTS ----
+  
 
   @Get('conversations')
   @Roles('admin', 'super_admin')

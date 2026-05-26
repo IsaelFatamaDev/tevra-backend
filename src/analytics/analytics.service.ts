@@ -117,8 +117,8 @@ export class AnalyticsService {
       .getRawMany();
   }
 
-  // BUG-19 FIX: Use COALESCE across multiple JSON fields (city, district)
-  // so orders without a 'city' key still appear in the report.
+  
+  
   async getOrdersByCity(tenantId: string, period?: string) {
     const qb = this.orderRepo
       .createQueryBuilder('o')
@@ -141,10 +141,10 @@ export class AnalyticsService {
       .getRawMany();
   }
 
-  // BUG-18 FIX: Use COALESCE so orders without a category (manual orders
-  // created by agent without catalog product) still appear grouped.
-  // Changed innerJoin for products to leftJoin so product_id=null orders
-  // are included in the count via the 'Sin categoria' group.
+  
+  
+  
+  
   async getOrdersByCategory(tenantId: string, period?: string) {
     const qb = this.orderRepo
       .createQueryBuilder('o')

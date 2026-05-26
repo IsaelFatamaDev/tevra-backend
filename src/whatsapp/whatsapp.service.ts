@@ -34,9 +34,7 @@ export class WhatsAppService {
     };
   }
 
-  /**
-   * Create a WhatsApp instance in Evolution API
-   */
+  
   async createInstance(): Promise<any> {
     try {
       const { data } = await firstValueFrom(
@@ -58,9 +56,7 @@ export class WhatsAppService {
     }
   }
 
-  /**
-   * Get QR code to connect WhatsApp
-   */
+  
   async getQrCode(): Promise<any> {
     try {
       const { data } = await firstValueFrom(
@@ -76,9 +72,7 @@ export class WhatsAppService {
     }
   }
 
-  /**
-   * Check connection status of the WhatsApp instance
-   */
+  
   async getConnectionStatus(): Promise<any> {
     try {
       const { data } = await firstValueFrom(
@@ -94,14 +88,10 @@ export class WhatsAppService {
     }
   }
 
-  /**
-   * Send a text message via WhatsApp
-   * @param phone Phone number with country code (e.g. "5511999999999")
-   * @param text Message text
-   */
+  
   async sendText(phone: string, text: string, tenantId?: string): Promise<any> {
     try {
-      // Normalize phone: remove spaces, dashes, plus, etc.
+      
       const normalizedPhone = phone.replace(/[\s\-\+\(\)]/g, '');
 
       const { data } = await firstValueFrom(
@@ -132,14 +122,12 @@ export class WhatsAppService {
       return data;
     } catch (error) {
       this.logger.warn(`Failed to send WhatsApp to ${phone}: ${error.message}`);
-      // Don't throw — WhatsApp is a secondary channel; we should not block flows
+      
       return null;
     }
   }
 
-  /**
-   * Disconnect (logout) the WhatsApp instance
-   */
+  
   async logout(): Promise<any> {
     try {
       const { data } = await firstValueFrom(
@@ -156,23 +144,21 @@ export class WhatsAppService {
     }
   }
 
-  /**
-   * Handle incoming messages from Evolution API Webhook
-   */
+  
   async handleWebhook(payload: any, tenantId: string): Promise<void> {
     const eventName = payload.event?.toLowerCase();
     if (eventName === 'messages.upsert' || eventName === 'messages.update') {
       let messages = [];
       if (Array.isArray(payload.data?.messages)) {
-        messages = payload.data.messages; // v1 format
+        messages = payload.data.messages; 
       } else if (payload.data?.key) {
-        messages = [payload.data]; // v2 single message format
+        messages = [payload.data]; 
       } else if (Array.isArray(payload.data)) {
-        messages = payload.data; // v2 array format
+        messages = payload.data; 
       }
 
       for (const msg of messages) {
-        // Skip messages that we sent ourselves (fromMe = true)
+        
         if (msg.key?.fromMe) continue;
 
         const senderPhone = msg.key.remoteJid?.split('@')[0];

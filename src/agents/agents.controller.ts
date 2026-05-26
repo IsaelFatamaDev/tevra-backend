@@ -81,7 +81,7 @@ export class AgentsController {
     return this.service.updateStatus(id, status, req.user.id);
   }
 
-  // Applications
+  
   @Public()
   @Post('applications')
   @ApiOperation({ summary: 'Submit agent application' })

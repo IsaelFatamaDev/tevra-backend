@@ -15,12 +15,11 @@ export class MailListener {
     private readonly whatsAppService: WhatsAppService,
   ) {}
 
-  /* ────────────── USER REGISTERED ────────────── */
-  @OnEvent('user.registered')
+    @OnEvent('user.registered')
   async handleUserRegisteredEvent(event: UserRegisteredEvent) {
     this.logger.log(`Handling user.registered for: ${event.email}`);
 
-    // 1. Send welcome email with dynamic frontendUrl from tenant settings
+    
     await this.mailService.sendWelcomeEmail(
       event.email,
       event.firstName,
@@ -29,7 +28,7 @@ export class MailListener {
       event.tenantId,
     );
 
-    // 2. Send WhatsApp welcome (if phone provided)
+    
     if (event.whatsapp) {
       const message = [
         `🎉 Welcome to TeVra, ${event.firstName}!`,
@@ -41,7 +40,7 @@ export class MailListener {
         ``,
         `Please verify your email to activate your account.`,
         ``,
-        `🔗 Login: https://tevra.ddns.net/login`,
+        `🔗 Login: https:
         ``,
         `— TeVra Team`,
       ].join('\n');
@@ -50,12 +49,11 @@ export class MailListener {
     }
   }
 
-  /* ────────────── ORDER STATUS UPDATED ────────────── */
-  @OnEvent('order.status-updated')
+    @OnEvent('order.status-updated')
   async handleOrderStatusUpdatedEvent(event: OrderStatusUpdatedEvent) {
     this.logger.log(`Handling order.status-updated for: ${event.orderNumber}`);
 
-    // 1. Email to customer
+    
     if (event.customerEmail) {
       await this.mailService.sendOrderUpdateEmail(
         event.customerEmail,
@@ -65,7 +63,7 @@ export class MailListener {
       );
     }
 
-    // 2. Email to agent
+    
     if (event.agentEmail) {
       await this.mailService.sendAgentOrderNotification(
         event.agentEmail,
@@ -74,7 +72,7 @@ export class MailListener {
       );
     }
 
-    // 3. WhatsApp to customer
+    
     if (event.customerWhatsapp) {
       const statusLabel = event.newStatus.replace(/_/g, ' ').toUpperCase();
       const message = [
@@ -84,7 +82,7 @@ export class MailListener {
         ``,
         `📋 New status: *${statusLabel}*`,
         ``,
-        `Track your order: https://tevra.ddns.net/seguimiento`,
+        `Track your order: https:
         ``,
         `— TeVra Team`,
       ].join('\n');
@@ -92,7 +90,7 @@ export class MailListener {
       await this.whatsAppService.sendText(event.customerWhatsapp, message);
     }
 
-    // 4. WhatsApp to agent
+    
     if (event.agentWhatsapp) {
       const statusLabel = event.newStatus.replace(/_/g, ' ').toUpperCase();
       const message = [
@@ -108,26 +106,25 @@ export class MailListener {
     }
   }
 
-  /* ────────────── CAMPAIGN LAUNCHED ────────────── */
-  @OnEvent('campaign.launched')
+    @OnEvent('campaign.launched')
   async handleCampaignLaunchedEvent(event: CampaignLaunchedEvent) {
     this.logger.log(`Handling campaign.launched for: ${event.campaignId}`);
 
-    // 1. Send emails
+    
     await this.mailService.sendCampaignEmails(
       event.targetAudienceEmails,
       event.subject,
       event.content,
     );
 
-    // 2. Send WhatsApp messages
+    
     if (event.targetAudiencePhones?.length > 0) {
       const waMessage = [
         `📢 *TeVra — ${event.subject}*`,
         ``,
         event.content.replace(/<[^>]*>/g, ''), // Strip HTML tags for plain text
         ``,
-        `🔗 https://tevra.ddns.net`,
+        `🔗 https:
         ``,
         `— TeVra Team`,
       ].join('\n');
@@ -138,8 +135,7 @@ export class MailListener {
     }
   }
 
-  /* ────────────── COMMISSION PAID ────────────── */
-  @OnEvent('commission.paid')
+    @OnEvent('commission.paid')
   async handleCommissionPaidEvent(event: any) {
     this.logger.log(`Handling commission.paid for: ${event.agentEmail}`);
 

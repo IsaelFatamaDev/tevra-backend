@@ -13,23 +13,23 @@ export class WhatsAppMessage {
   @JoinColumn({ name: 'tenant_id' })
   tenant: Tenant;
 
-  // El número de teléfono con código de país (ej. 51987654321)
+  
   @Column({ length: 50 })
   phoneNumber: string;
 
-  // Texto del mensaje
+  
   @Column({ type: 'text' })
   text: string;
 
-  // true si el mensaje fue enviado por el administrador, false si fue recibido del cliente
+  
   @Column({ name: 'is_from_admin', default: false })
   isFromAdmin: boolean;
 
-  // ID del mensaje original en Evolution API (para evitar duplicados)
+  
   @Column({ name: 'message_id', nullable: true })
   messageId: string;
 
-  // Para saber si el mensaje ya fue leído en la interfaz de Inbox
+  
   @Column({ name: 'is_read', default: false })
   isRead: boolean;
 

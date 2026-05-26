@@ -22,7 +22,7 @@ export class CampaignsService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  // Campaigns
+  
   findAllCampaigns(tenantId: string, status?: string) {
     const where: any = { tenantId };
     if (status) where.status = status;
@@ -51,18 +51,14 @@ export class CampaignsService {
       throw new Error('Campaign has already been sent.');
     }
 
-    // Default to active users, can be narrowed down if targeting specific segment
+    
     let users = await this.userRepo.find({
       where: { tenantId: campaign.tenantId, isActive: true },
       select: ['email', 'whatsapp'],
     });
 
-    // If campaign has a related audienceSegmentId, we could filter here
-    /*
-    if (campaign.audienceSegmentId) {
-        ... apply segment rules
-    }
-    */
+    
+    
 
     const emails = users.map(u => u.email).filter(Boolean);
     const phones = users.map(u => u.whatsapp).filter(Boolean);
@@ -80,7 +76,7 @@ export class CampaignsService {
         )
       );
 
-      // Update basic details after launch
+      
       campaign.status = CampaignStatus.SENT;
       campaign.sentAt = new Date();
       campaign.recipientCount = emails.length;
@@ -104,7 +100,7 @@ export class CampaignsService {
     };
   }
 
-  // Templates
+  
   findAllTemplates(tenantId: string) {
     return this.templateRepo.find({ where: { tenantId, isActive: true } });
   }
@@ -114,7 +110,7 @@ export class CampaignsService {
     return this.templateRepo.save(t);
   }
 
-  // Segments
+  
   findAllSegments(tenantId: string) {
     return this.segmentRepo.find({ where: { tenantId }, order: { memberCount: 'DESC' } });
   }

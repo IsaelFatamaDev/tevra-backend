@@ -67,8 +67,8 @@ export class CampaignsController {
     return this.service.updateCampaign(id, dto);
   }
 
-  // BUG-14 FIX: The launchCampaign logic existed in the service but was never
-  // exposed. This endpoint triggers the actual email/WhatsApp sending.
+  
+  
   @Post(':id/launch')
   @ApiOperation({ summary: 'Launch campaign - sends emails/WhatsApp to audience' })
   launch(@Param('id') id: string) {

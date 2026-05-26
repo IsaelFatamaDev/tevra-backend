@@ -18,7 +18,7 @@ export class ProductsService {
     private readonly storageService: StorageService,
   ) { }
 
-  // === Products ===
+  
   async findAllProducts(tenantId: string, query?: {
     categorySlug?: string;
     brandId?: string;
@@ -59,7 +59,7 @@ export class ProductsService {
       qb.andWhere('p.priceUsd <= :maxPrice', { maxPrice: query.maxPrice });
     }
 
-    // Sorting
+    
     switch (query?.sortBy) {
       case 'price_asc': qb.orderBy('p.priceUsd', 'ASC'); break;
       case 'price_desc': qb.orderBy('p.priceUsd', 'DESC'); break;
@@ -200,7 +200,7 @@ export class ProductsService {
     return this.findProduct(id);
   }
 
-  // === Categories ===
+  
   findAllCategories(tenantId: string) {
     return this.categoryRepo.find({
       where: { tenantId, isActive: true },
@@ -231,7 +231,7 @@ export class ProductsService {
     return this.findCategory(id);
   }
 
-  // === Brands ===
+  
   findAllBrands(tenantId: string) {
     return this.brandRepo.find({
       where: { tenantId, isActive: true },

@@ -12,7 +12,7 @@ export class InvoicesService {
   ) {}
 
   async create(tenantId: string, dto: any): Promise<Invoice> {
-    // Generate a simple sequential-looking invoice number like BOL-2026-1029
+    
     const randomNum = Math.floor(1000 + Math.random() * 9000);
     const invoiceNumber = `BOL-${new Date().getFullYear()}-${randomNum}`;
 

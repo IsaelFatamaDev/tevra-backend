@@ -14,7 +14,7 @@ export class Invoice {
   @JoinColumn({ name: 'tenant_id' })
   tenant: Tenant;
 
-  // Si esta boleta está conectada a un pedido del e-commerce
+  
   @Column({ name: 'order_id', nullable: true })
   orderId: string;
 
@@ -34,7 +34,7 @@ export class Invoice {
   @Column({ name: 'address', length: 500, nullable: true })
   address: string;
 
-  // Guardamos los items de forma denormalizada como JSON ya que pueden ser servicios sueltos
+  
   @Column({ type: 'jsonb' })
   items: Array<{
     name: string;
@@ -46,7 +46,7 @@ export class Invoice {
   @Column({ type: 'decimal', precision: 10, scale: 2, name: 'total_amount' })
   totalAmount: number;
 
-  @Column({ length: 20, default: 'pending' }) // pending, paid, cancelled
+  @Column({ length: 20, default: 'pending' }) 
   status: string;
 
   @Column({ type: 'text', nullable: true })

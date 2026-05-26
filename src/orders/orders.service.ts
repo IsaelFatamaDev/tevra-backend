@@ -92,18 +92,18 @@ export class OrdersService {
     return order;
   }
 
-  // BUG-05 FIX: Search by orderNumber OR by full/partial UUID so tracking
-  // from the public page works regardless of what format the customer types.
+  
+  
   async findByOrderNumber(orderNumber: string) {
     const normalized = orderNumber.trim().toUpperCase();
 
-    // Try exact match on orderNumber first
+    
     let order = await this.orderRepo.findOne({
       where: { orderNumber: normalized },
       relations: ['items', 'customer', 'agent', 'agent.user'],
     });
 
-    // Fallback: try case-insensitive and original case
+    
     if (!order) {
       order = await this.orderRepo.findOne({
         where: { orderNumber: orderNumber.trim() },
@@ -111,7 +111,7 @@ export class OrdersService {
       });
     }
 
-    // Fallback: try matching by UUID (id starts with)
+    
     if (!order) {
       order = await this.orderRepo
         .createQueryBuilder('o')
@@ -170,7 +170,7 @@ export class OrdersService {
         firstName: o.customer.firstName,
         lastName: o.customer.lastName,
         email: o.customer.email,
-        // BUG-07 FIX: include whatsapp so agent can contact the correct number
+        
         phone: o.customer.phone,
         whatsapp: o.customer.whatsapp,
       } : null,
@@ -196,7 +196,7 @@ export class OrdersService {
 
     const subtotal = dto.items.reduce((acc, item) => acc + item.unitPrice * item.quantity, 0);
     const shippingCost = subtotal > 500 ? 20 : 15;
-    // Commissions are extracted from the margin already baked into prices — never added on top
+    
     const tevraCommission = Number((subtotal * 0.15).toFixed(2));
     const agentCommission = dto.agentId ? Number((subtotal * 0.12).toFixed(2)) : 0;
     const total = Number((subtotal + shippingCost).toFixed(2));

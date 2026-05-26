@@ -58,6 +58,8 @@ export class AgentsService {
       rating: a.rating,
       ratingCount: a.ratingCount,
       status: a.status,
+      bankInfo: a.bankInfo,
+      documents: a.documents,
       createdAt: a.createdAt,
     }));
   }
@@ -90,6 +92,8 @@ export class AgentsService {
       rating: agent.rating,
       ratingCount: agent.ratingCount,
       status: agent.status,
+      bankInfo: agent.bankInfo,
+      documents: agent.documents,
       createdAt: agent.createdAt,
     };
   }
@@ -122,7 +126,7 @@ export class AgentsService {
     return this.findOne(id);
   }
 
-  // Applications
+  
   async createApplication(tenantId: string, dto: Partial<AgentApplication> & { password?: string }) {
     const data: any = { ...dto, tenantId };
     if (dto.password) {
@@ -159,7 +163,7 @@ export class AgentsService {
     });
 
     if (decision === 'approved') {
-      // Create user + agent
+      
       let user = await this.userRepo.findOne({
         where: { email: app.email, tenantId: app.tenantId },
       });
@@ -215,7 +219,7 @@ export class AgentsService {
     return rows.map((r: any) => r.city);
   }
 
-  // Stats for admin dashboard
+  
   async getStats(tenantId: string) {
     const [activeCount] = await this.agentRepo.query(
       `SELECT COUNT(*) as count FROM agents WHERE tenant_id = $1 AND status = 'active'`, [tenantId]

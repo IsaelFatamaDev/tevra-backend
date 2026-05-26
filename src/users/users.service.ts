@@ -83,7 +83,7 @@ export class UsersService {
     return { ...user, addresses };
   }
 
-  // Address management
+  
   async getAddresses(userId: string) {
     return this.addressRepo.find({
       where: { userId },

@@ -73,12 +73,12 @@ export class CommissionsService {
     return commission;
   }
 
-  // BUG-08 FIX: More robust lookup — also checks commission.tenantId for
-  // admins and returns gracefully if agent profile does not exist yet.
+  
+  
   async findByAgentUserId(userId: string) {
     const agent = await this.agentRepo.findOne({ where: { userId } });
     if (!agent) {
-      // Graceful: agent profile not created yet, return empty set
+      
       return { commissions: [], summary: { totalEarned: 0, totalPaid: 0, totalPending: 0, totalApproved: 0, count: 0 } };
     }
     return this.findByAgent(agent.id);

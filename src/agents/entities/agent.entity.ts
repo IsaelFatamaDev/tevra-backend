@@ -72,6 +72,12 @@ export class Agent {
   @Column({ type: 'enum', enum: AgentStatus, default: AgentStatus.ACTIVE })
   status: AgentStatus;
 
+  @Column({ name: 'bank_info', type: 'jsonb', nullable: true })
+  bankInfo: any;
+
+  @Column({ type: 'jsonb', nullable: true })
+  documents: any;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

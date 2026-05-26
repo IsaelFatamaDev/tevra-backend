@@ -26,10 +26,10 @@ export class ReviewsService {
       .leftJoinAndSelect('r.reviewer', 'reviewer')
       .where('r.tenantId = :tenantId', { tenantId });
 
-    // By default (public), only show approved reviews. Pass status='all' to see all.
+    
     const statusFilter = query?.status;
     if (statusFilter === 'all') {
-      // show every status (admin)
+      
     } else if (statusFilter && statusFilter !== 'all') {
       qb.andWhere('r.status = :status', { status: statusFilter });
     } else {

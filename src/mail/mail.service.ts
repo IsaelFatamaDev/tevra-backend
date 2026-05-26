@@ -16,8 +16,8 @@ export class MailService {
     private readonly tenantsRepo: Repository<Tenant>,
   ) { }
 
-  // Resolves the frontend URL from tenant settings (set by admin in platform),
-  // falling back to FRONTEND_URL env var, then localhost.
+  
+  
   private async resolveFrontendUrl(tenantId?: string): Promise<string> {
     if (tenantId) {
       try {
@@ -37,7 +37,7 @@ export class MailService {
     tenantId?: string,
   ) {
     const baseUrl = await this.resolveFrontendUrl(tenantId);
-    // Point directly to the React frontend route which handles the API call under the hood
+    
     const verificationUrl = `${baseUrl}/verificado?token=${verificationToken}`;
     const loginUrl = `${baseUrl}/login`;
 
@@ -152,7 +152,7 @@ export class MailService {
     await this.mailerService.sendMail({
       to: email,
       subject,
-      html: htmlContent, // Using direct html instead of template for generic emails
+      html: htmlContent, 
     });
     this.logger.log(`Generic email sent to ${email}`);
   }

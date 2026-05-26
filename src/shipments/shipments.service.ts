@@ -84,7 +84,7 @@ export class ShipmentsService {
     });
     await this.eventRepo.save(event);
 
-    // Also update shipment status
+    
     await this.shipmentRepo.update(shipmentId, {
       status: dto.status as any,
       currentLocation: dto.location,
