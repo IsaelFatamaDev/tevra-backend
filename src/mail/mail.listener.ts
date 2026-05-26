@@ -40,8 +40,7 @@ export class MailListener {
         ``,
         `Please verify your email to activate your account.`,
         ``,
-        `🔗 Login: https:
-        ``,
+        `🔗 Login: https://tevra.com/login`,
         `— TeVra Team`,
       ].join('\n');
 
@@ -82,8 +81,7 @@ export class MailListener {
         ``,
         `📋 New status: *${statusLabel}*`,
         ``,
-        `Track your order: https:
-        ``,
+        `Track your order: https://tevra.com/orders`,
         `— TeVra Team`,
       ].join('\n');
 
@@ -124,8 +122,7 @@ export class MailListener {
         ``,
         event.content.replace(/<[^>]*>/g, ''), // Strip HTML tags for plain text
         ``,
-        `🔗 https:
-        ``,
+        `🔗 https://tevra.com`,
         `— TeVra Team`,
       ].join('\n');
 
