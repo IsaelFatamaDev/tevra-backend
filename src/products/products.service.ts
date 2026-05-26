@@ -218,6 +218,9 @@ export class ProductsService {
 
   async createCategory(tenantId: string, dto: any) {
     const { icon, ...rest } = dto;
+    if (rest.name && !rest.slug) {
+      rest.slug = this.generateSlug(rest.name) + '-' + Date.now();
+    }
     const cat = this.categoryRepo.create({ ...rest, imageUrl: icon, tenantId });
     return this.categoryRepo.save(cat);
   }
@@ -226,6 +229,9 @@ export class ProductsService {
     const { icon, ...rest } = dto;
     const updateData = { ...rest, updatedAt: new Date() };
     if (icon !== undefined) updateData.imageUrl = icon;
+    if (updateData.name && !updateData.slug) {
+      updateData.slug = this.generateSlug(updateData.name) + '-' + Date.now();
+    }
     
     await this.categoryRepo.update(id, updateData);
     return this.findCategory(id);
