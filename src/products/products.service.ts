@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
@@ -224,7 +224,7 @@ export class ProductsService {
     if (rest.slug) {
       const existing = await this.categoryRepo.findOne({ where: { slug: rest.slug, tenantId } });
       if (existing) {
-        rest.slug = rest.slug + '-' + Date.now();
+        throw new ConflictException('Ya existe una categoría con este identificador (slug).');
       }
     }
     const cat = this.categoryRepo.create({ ...rest, imageUrl: icon, tenantId });
@@ -246,7 +246,7 @@ export class ProductsService {
           where: { slug: updateData.slug, tenantId: cat.tenantId } 
         });
         if (existing && existing.id !== id) {
-          updateData.slug = updateData.slug + '-' + Date.now();
+          throw new ConflictException('Ya existe una categoría con este identificador (slug).');
         }
       }
     }
